@@ -18,23 +18,6 @@ module.exports = async (client, message) => {
 	if (!message.guild) return;
 	if (message.author.bot) return;
 
-	const ms = await import("parse-ms");
-	const timer = 60000;
-
-	if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
-		client.cooldown = Date.now();
-
-		const channel = await client.channels.fetch(process.env.CHANNEL);
-
-		if (Math.floor(Math.random() * 100) <= 30) {
-			const message = await channel.send("🥚");
-
-			client.egg = {
-				id: message.id,
-			};
-		}
-	}
-
 	if (
 		!message.guild.me.permissions.has("SEND_MESSAGES") ||
 		!message.guild.me.permissionsIn(message.channel).has("SEND_MESSAGES")
@@ -42,33 +25,56 @@ module.exports = async (client, message) => {
 		return;
 
 	const prefix = process.env.PREFIX;
-	if (!message.content.startsWith(prefix)) return;
-	if (!message.member)
-		message.member = await message.guild.fetchMember(message);
-	if (
-		!message.guild.me.permissions.has("READ_MESSAGE_HISTORY") ||
-		!message.guild.me.permissionsIn(message.channel).has("READ_MESSAGE_HISTORY")
-	)
-		return message.channel.send(
-			"I need a read message history permission for me to be able to reply to the past messages."
-		);
+	if (message.content.startsWith(prefix)) {
+		if (!message.member)
+			message.member = await message.guild.fetchMember(message);
+		if (
+			!message.guild.me.permissions.has("READ_MESSAGE_HISTORY") ||
+			!message.guild.me
+				.permissionsIn(message.channel)
+				.has("READ_MESSAGE_HISTORY")
+		)
+			return message.channel.send(
+				"I need a read message history permission for me to be able to reply to the past messages."
+			);
 
-	const args = message.content.slice(prefix.length).trim().split(/ +/g);
-	const cmd = args.shift().toLowerCase();
+		const args = message.content.slice(prefix.length).trim().split(/ +/g);
+		const cmd = args.shift().toLowerCase();
 
-	if (cmd.length === 0) return;
+		if (cmd.length === 0) return;
 
-	let command = client.commands.get(cmd);
-	if (!command) command = client.commands.get(client.aliases.get(cmd));
+		let command = client.commands.get(cmd);
+		if (!command) command = client.commands.get(client.aliases.get(cmd));
 
-	try {
-		if (command) {
-			command.run(client, message, args);
+		try {
+			if (command) {
+				command.run(client, message, args);
+			}
+		} catch (error) {
+			console.error(error);
+			message.reply(
+				`there was an error trying to execute that command! \n\`${error}\``
+			);
 		}
-	} catch (error) {
-		console.error(error);
-		message.reply(
-			`there was an error trying to execute that command! \n\`${error}\``
-		);
+	} else {
+		const ms = await import("parse-ms");
+		const timer = 60000;
+
+		if (
+			client.cooldown === null ||
+			timer - (Date.now() - client.cooldown) < 1
+		) {
+			client.cooldown = Date.now();
+
+			const channel = await client.channels.fetch(process.env.CHANNEL);
+
+			if (Math.floor(Math.random() * 100) <= 30) {
+				const message = await channel.send("🥚");
+
+				client.egg = {
+					id: message.id,
+				};
+			}
+		}
 	}
 };
