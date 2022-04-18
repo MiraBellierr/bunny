@@ -20,6 +20,8 @@ const { Egg } = require("../../database/schemas/egg");
 module.exports = {
 	name: "claim",
 	run: async (client, message) => {
+		message.delete();
+
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
 		if (message.channel.id !== channel.id) return;
