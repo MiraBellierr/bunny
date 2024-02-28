@@ -15,7 +15,7 @@
  */
 
 const { Egg } = require("../../database/schemas/egg");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
 	name: "lb",
@@ -25,6 +25,8 @@ module.exports = {
 			order: [["point", "DESC"]],
 			limit: 10,
 		});
+
+		if (!findAllUser.length) return message.channel.send("No Data Yet!");
 
 		const leaderboard = [];
 
@@ -38,7 +40,7 @@ module.exports = {
 			);
 		});
 
-		const embed = new MessageEmbed().setDescription(leaderboard.join("\n"));
+		const embed = new EmbedBuilder().setDescription(leaderboard.join("\n"));
 
 		message.channel.send({ embeds: [embed] });
 	},

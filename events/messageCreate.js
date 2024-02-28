@@ -14,6 +14,8 @@
    limitations under the License.
  */
 
+const { PermissionsBitField } = require("discord.js");
+
 module.exports = async (client, message) => {
 	if (!message.guild) return;
 	if (message.author.bot) return;
@@ -36,8 +38,12 @@ module.exports = async (client, message) => {
 	}
 
 	if (
-		!message.guild.me.permissions.has("SEND_MESSAGES") ||
-		!message.guild.me.permissionsIn(message.channel).has("SEND_MESSAGES")
+		!message.guild.members.me.permissions.has(
+			PermissionsBitField.Flags.SendMessages
+		) ||
+		!message.guild.members.me
+			.permissionsIn(message.channel)
+			.has(PermissionsBitField.Flags.SendMessages)
 	)
 		return;
 
@@ -46,8 +52,12 @@ module.exports = async (client, message) => {
 	if (!message.member)
 		message.member = await message.guild.fetchMember(message);
 	if (
-		!message.guild.me.permissions.has("READ_MESSAGE_HISTORY") ||
-		!message.guild.me.permissionsIn(message.channel).has("READ_MESSAGE_HISTORY")
+		!message.guild.members.me.permissions.has(
+			PermissionsBitField.Flags.ReadMessageHistory
+		) ||
+		!message.guild.members.me
+			.permissionsIn(message.channel)
+			.has(PermissionsBitField.Flags.ReadMessageHistory)
 	)
 		return message.channel.send(
 			"I need a read message history permission for me to be able to reply to the past messages."

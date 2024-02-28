@@ -15,7 +15,7 @@
  */
 
 require("dotenv").config();
-const { Client, Collection } = require("discord.js");
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 const Sequelize = require("sequelize");
 
@@ -26,28 +26,19 @@ new Sequelize("database", "user", "password", {
 	storage: "./database/database.sqlite",
 });
 
-const PrivilegedIntents = {
-	GUILD_PRESENCES: "GUILD_PRESENCES",
-	GUILD_MEMBERS: "GUILD_MEMBERS",
-};
-
 const client = new Client({
 	allowedMentions: { parse: ["users"] },
 	intents: [
-		"GUILDS",
-		"DIRECT_MESSAGES",
-		"DIRECT_MESSAGE_REACTIONS",
-		"DIRECT_MESSAGE_TYPING",
-		"GUILD_BANS",
-		"GUILD_EMOJIS_AND_STICKERS",
-		"GUILD_INTEGRATIONS",
-		"GUILD_INVITES",
-		PrivilegedIntents.GUILD_MEMBERS,
-		"GUILD_MESSAGES",
-		"GUILD_MESSAGE_REACTIONS",
-		"GUILD_MESSAGE_TYPING",
-		"GUILD_VOICE_STATES",
-		"GUILD_WEBHOOKS",
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildBans,
+		GatewayIntentBits.GuildEmojisAndStickers,
+		GatewayIntentBits.GuildIntegrations,
+		GatewayIntentBits.GuildInvites,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildVoiceStates,
 	],
 });
 
