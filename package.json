@@ -7,7 +7,6 @@
     "ascii-table": "^0.0.9",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
-    "parse-ms": "^4.0.0",
     "sequelize": "^6.37.1",
     "sqlite3": "^5.1.7"
   },

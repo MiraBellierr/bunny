@@ -20,23 +20,6 @@ module.exports = async (client, message) => {
 	if (!message.guild) return;
 	if (message.author.bot) return;
 
-	const ms = await import("parse-ms");
-	const timer = 60000;
-
-	if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
-		client.cooldown = Date.now();
-
-		const channel = await client.channels.fetch(process.env.CHANNEL);
-
-		if (Math.floor(Math.random() * 100) <= 30) {
-			const message = await channel.send("🥚");
-
-			client.egg = {
-				id: message.id,
-			};
-		}
-	}
-
 	if (
 		!message.guild.members.me.permissions.has(
 			PermissionsBitField.Flags.SendMessages
@@ -46,6 +29,27 @@ module.exports = async (client, message) => {
 			.has(PermissionsBitField.Flags.SendMessages)
 	)
 		return;
+
+	const timer = 60000;
+
+	if (message.channel.id === process.env.CHANNEL) {
+		if (
+			client.cooldown === null ||
+			timer - (Date.now() - client.cooldown) < 1
+		) {
+			client.cooldown = Date.now();
+
+			const channel = await client.channels.fetch(process.env.CHANNEL);
+
+			if (Math.floor(Math.random() * 100) <= 30) {
+				const message = await channel.send("🥚");
+
+				client.egg = {
+					id: message.id,
+				};
+			}
+		}
+	}
 
 	const prefix = process.env.PREFIX;
 	if (!message.content.startsWith(prefix)) return;
