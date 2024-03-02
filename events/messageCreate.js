@@ -15,6 +15,7 @@
  */
 
 const { PermissionsBitField } = require("discord.js");
+let before = "";
 
 module.exports = async (client, message) => {
 	if (!message.guild) return;
@@ -33,8 +34,6 @@ module.exports = async (client, message) => {
 	const timer = 60000;
 
 	if (message.channel.id === process.env.CHANNEL) {
-		let before = "";
-
 		if (
 			client.cooldown === null ||
 			timer - (Date.now() - client.cooldown) < 1
