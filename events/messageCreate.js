@@ -31,6 +31,43 @@ module.exports = async (client, message) => {
 	)
 		return;
 
+	const prefix = process.env.PREFIX;
+
+	if (message.content.startsWith(prefix)) {
+		if (!message.member)
+			message.member = await message.guild.fetchMember(message);
+		if (
+			!message.guild.members.me.permissions.has(
+				PermissionsBitField.Flags.ReadMessageHistory
+			) ||
+			!message.guild.members.me
+				.permissionsIn(message.channel)
+				.has(PermissionsBitField.Flags.ReadMessageHistory)
+		)
+			return message.channel.send(
+				"I need a read message history permission for me to be able to reply to the past messages."
+			);
+
+		const args = message.content.slice(prefix.length).trim().split(/ +/g);
+		const cmd = args.shift().toLowerCase();
+
+		if (cmd.length === 0) return;
+
+		let command = client.commands.get(cmd);
+		if (!command) command = client.commands.get(client.aliases.get(cmd));
+
+		try {
+			if (command) {
+				command.run(client, message, args);
+			}
+		} catch (error) {
+			console.error(error);
+			message.reply(
+				`there was an error trying to execute that command! \n\`${error}\``
+			);
+		}
+	}
+
 	const timer = 60000;
 
 	if (message.channel.id === process.env.CHANNEL) {
@@ -54,40 +91,5 @@ module.exports = async (client, message) => {
 				};
 			}
 		}
-	}
-
-	const prefix = process.env.PREFIX;
-	if (!message.content.startsWith(prefix)) return;
-	if (!message.member)
-		message.member = await message.guild.fetchMember(message);
-	if (
-		!message.guild.members.me.permissions.has(
-			PermissionsBitField.Flags.ReadMessageHistory
-		) ||
-		!message.guild.members.me
-			.permissionsIn(message.channel)
-			.has(PermissionsBitField.Flags.ReadMessageHistory)
-	)
-		return message.channel.send(
-			"I need a read message history permission for me to be able to reply to the past messages."
-		);
-
-	const args = message.content.slice(prefix.length).trim().split(/ +/g);
-	const cmd = args.shift().toLowerCase();
-
-	if (cmd.length === 0) return;
-
-	let command = client.commands.get(cmd);
-	if (!command) command = client.commands.get(client.aliases.get(cmd));
-
-	try {
-		if (command) {
-			command.run(client, message, args);
-		}
-	} catch (error) {
-		console.error(error);
-		message.reply(
-			`there was an error trying to execute that command! \n\`${error}\``
-		);
 	}
 };
