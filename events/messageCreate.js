@@ -33,6 +33,8 @@ module.exports = async (client, message) => {
 	const timer = 60000;
 
 	if (message.channel.id === process.env.CHANNEL) {
+		let before = "";
+
 		if (
 			client.cooldown === null ||
 			timer - (Date.now() - client.cooldown) < 1
@@ -41,11 +43,15 @@ module.exports = async (client, message) => {
 
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 
-			if (Math.floor(Math.random() * 100) <= 10) {
-				const message = await channel.send("🥚");
+			if (
+				before !== message.author.id &&
+				Math.floor(Math.random() * 100) <= 10
+			) {
+				before = message.author.id;
+				const msg = await channel.send("🥚");
 
 				client.egg = {
-					id: message.id,
+					id: msg.id,
 				};
 			}
 		}
