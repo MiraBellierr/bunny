@@ -23,14 +23,16 @@ module.exports = {
 	run: async (client, message) => {
 		const findAllUser = await Egg().findAll({
 			order: [["point", "DESC"]],
-			limit: 10,
 		});
 
 		if (!findAllUser.length) return message.channel.send("No Data Yet!");
 
-		const leaderboard = [];
+		const top10Users = findAllUser.slice(0, 10);
 
-		await findAllUser.forEach(async (egg, index) => {
+		const leaderboard = [];
+		let userIndex = -1;
+
+		await top10Users.forEach(async (egg, index) => {
 			const user = await client.users.fetch(egg.dataValues.userid);
 
 			leaderboard.push(
@@ -38,7 +40,34 @@ module.exports = {
 					egg.dataValues.point
 				}\` eggs`
 			);
+
+			if (user.id === message.author.id) {
+				userIndex = index;
+			}
 		});
+
+		if (userIndex === -1) {
+			const userEgg = await Egg().findOne({
+				where: {
+					userid: message.author.id,
+				},
+			});
+
+			if (userEgg) {
+				for (let i = 0; i < findAllUser.length; i++) {
+					if (findAllUser[i].dataValues.userid === message.author.id) {
+						userIndex = i;
+						break;
+					}
+				}
+
+				leaderboard.push(
+					`**[${userIndex + 1}]** - ${message.author}: \`${userEgg.get(
+						"point"
+					)}\` eggs`
+				);
+			}
+		}
 
 		const embed = new EmbedBuilder().setDescription(leaderboard.join("\n"));
 
