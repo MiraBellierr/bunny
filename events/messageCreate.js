@@ -41,7 +41,7 @@ module.exports = async (client, message) => {
 
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 
-			if (Math.floor(Math.random() * 100) <= 30) {
+			if (Math.floor(Math.random() * 100) <= 10) {
 				const message = await channel.send("🥚");
 
 				client.egg = {
