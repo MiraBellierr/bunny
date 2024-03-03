@@ -15,20 +15,16 @@
  */
 
 module.exports = {
-	name: "spawn",
-	run: async (client, message) => {
+	name: "rate",
+	run: async (client, message, args) => {
 		if (message.author.id !== "548050617889980426") return;
 
-		const channel = await client.channels.fetch(process.env.CHANNEL);
+		const rate = args[0];
 
-		const eggMessage =
-			(await message.channel.messages.fetch(client.egg.id)) || null;
-		eggMessage.delete();
+		if (isNaN(rate)) return;
 
-		const spawnEgg = await channel.send("🥚");
+		client.egg.rate = parseInt(rate);
 
-		client.egg.id = spawnEgg.id;
-
-		message.channel.send("Successfully spawned an egg!");
+		message.channel.send(`Successfully changed a spawn rate to ${rate}%!`);
 	},
 };

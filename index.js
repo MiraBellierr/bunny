@@ -46,7 +46,10 @@ client.commands = new Collection();
 client.aliases = new Collection();
 client.categories = fs.readdirSync("./commands/");
 client.cooldown = null;
-client.egg = {};
+client.egg = {
+	id: "",
+	rate: 30,
+};
 
 ["command", "event"].forEach((handler) => {
 	require(`./handlers/${handler}`)(client);

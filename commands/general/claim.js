@@ -38,7 +38,7 @@ module.exports = {
 			(await message.channel.messages.fetch(client.egg.id)) || null;
 		eggMessage.delete();
 
-		client.egg = {};
+		client.egg.id = "";
 
 		message.channel.send(`${message.member.displayName} has claimed the egg!`);
 	},

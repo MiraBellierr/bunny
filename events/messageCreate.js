@@ -81,7 +81,7 @@ module.exports = async (client, message) => {
 
 			if (
 				before !== message.author.id &&
-				Math.floor(Math.random() * 100) <= 10
+				Math.floor(Math.random() * 100) <= client.egg.rate
 			) {
 				before = message.author.id;
 				const previousEgg =
@@ -91,9 +91,7 @@ module.exports = async (client, message) => {
 
 				const msg = await channel.send("🥚");
 
-				client.egg = {
-					id: msg.id,
-				};
+				client.egg.id = msg.id;
 			}
 		}
 	}
