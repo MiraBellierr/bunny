@@ -36,4 +36,32 @@ module.exports = {
 				target.user.tag.toLowerCase().includes(memberToFind)
 		);
 	},
+
+	getUserFromArguments: async (message, argument) => {
+		if (!argument) {
+			return null;
+		}
+
+		const userToFind = argument.toLowerCase();
+
+		if (message.mentions.users.first()) {
+			return message.mentions.users.first();
+		}
+
+		if (!Number.isNaN(Number(userToFind))) {
+			const fetched = await message.client.users
+				.fetch(userToFind)
+				.catch(() => null);
+
+			if (fetched) {
+				return fetched;
+			}
+		}
+
+		return message.client.users.cache.find(
+			(target) =>
+				target.username.toLowerCase().includes(userToFind) ||
+				target.tag.toLowerCase().includes(userToFind)
+		);
+	},
 };

@@ -15,10 +15,7 @@
  */
 
 const { Egg } = require("../../database/schemas/egg");
-const {
-	getMemberFromArguments,
-	getUserData,
-} = require("../../utils/functions");
+const { getUserFromArguments, getUserData } = require("../../utils/functions");
 
 module.exports = {
 	name: "edit",
@@ -27,9 +24,9 @@ module.exports = {
 
 		if (!args[0].length) return;
 
-		const target = getMemberFromArguments(message, args[0]);
+		const target = getUserFromArguments(message, args[0]);
 
-		const targetEggs = await getUserData(Egg(), target.user);
+		const targetEggs = await getUserData(Egg(), target);
 
 		const eggPoint = targetEggs.get("point");
 
@@ -50,7 +47,7 @@ module.exports = {
 		}
 
 		message.channel.send(
-			`Successfully ${args[1]} ${amount} eggs to ${target.user.username}.`
+			`Successfully ${args[1]} ${amount} eggs to ${target.username}.`
 		);
 	},
 };
