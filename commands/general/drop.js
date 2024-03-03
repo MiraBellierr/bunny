@@ -33,6 +33,8 @@ module.exports = {
 		const eggData = await functions.getUserData(Egg(), message.author);
 		const point = eggData.get("point");
 
+		if (point < 1) return message.channel.send("You don't have any eggs :(");
+
 		Egg().update(
 			{ point: point - 1 },
 			{ where: { userid: message.author.id } }
