@@ -62,7 +62,7 @@ module.exports = {
 				}
 
 				leaderboard.push(
-					`**[${userIndex + 1}]** - ${message.author}: \`${userEgg.get(
+					`--> **[${userIndex + 1}]** - ${message.author}: \`${userEgg.get(
 						"point"
 					)}\` eggs`
 				);
