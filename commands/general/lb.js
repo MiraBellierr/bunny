@@ -35,14 +35,20 @@ module.exports = {
 		await top10Users.forEach(async (egg, index) => {
 			const user = await client.users.fetch(egg.dataValues.userid);
 
-			leaderboard.push(
-				`**[${index + 1}]** - ${user.toString()}: \`${
-					egg.dataValues.point
-				}\` eggs`
-			);
-
-			if (user.id === message.author.id) {
+			if (user.id !== message.author.id) {
+				leaderboard.push(
+					`**[${index + 1}]** - ${user.toString()}: \`${
+						egg.dataValues.point
+					}\` eggs`
+				);
+			} else {
 				userIndex = index;
+
+				leaderboard.push(
+					`---> **[${index + 1}]** - ${user.toString()}: \`${
+						egg.dataValues.point
+					}\` eggs`
+				);
 			}
 		});
 

@@ -49,6 +49,7 @@ client.cooldown = null;
 client.egg = {
 	id: "",
 	rate: 30,
+	drop: "",
 };
 
 ["command", "event"].forEach((handler) => {

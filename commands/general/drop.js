@@ -18,30 +18,31 @@ const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 
 module.exports = {
-	name: "claim",
+	name: "drop",
 	category: "general",
 	run: async (client, message) => {
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
-		if (message.author.id === client.egg.drop) return;
 		if (message.channel.id !== channel.id) return;
-		if (!client.egg.id) return;
+
+		if (client.egg.id)
+			return message.channel.send(
+				"There is still an egg in the channel! Claim it fast!!"
+			);
 
 		const eggData = await functions.getUserData(Egg(), message.author);
 		const point = eggData.get("point");
 
 		Egg().update(
-			{ point: point + 1 },
+			{ point: point - 1 },
 			{ where: { userid: message.author.id } }
 		);
 
-		const eggMessage =
-			(await message.channel.messages.fetch(client.egg.id)) || null;
-		eggMessage.delete();
+		message.channel.send(`${message.member} dropped an egg!`);
 
-		client.egg.id = "";
-		client.egg.drop = "";
+		const eggMessage = await message.channel.send("🥚");
 
-		message.channel.send(`${message.member} has claimed the egg!`);
+		client.egg.id = eggMessage.id;
+		client.egg.drop = message.author.id;
 	},
 };
