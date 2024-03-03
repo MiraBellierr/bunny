@@ -21,8 +21,6 @@ module.exports = {
 
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
-		if (message.channel.id !== channel.id) return;
-
 		const eggMessage =
 			(await message.channel.messages.fetch(client.egg.id)) || null;
 		eggMessage.delete();

@@ -19,6 +19,7 @@ const { Egg } = require("../../database/schemas/egg");
 
 module.exports = {
 	name: "claim",
+	category: "general",
 	run: async (client, message) => {
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
