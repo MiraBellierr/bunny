@@ -37,12 +37,12 @@ module.exports = {
 		if (args[1] === "add") {
 			Egg().update(
 				{ point: eggPoint + amount },
-				{ where: { userid: message.author.id } }
+				{ where: { userid: target.id } }
 			);
 		} else if (args[1] === "minus") {
 			Egg().update(
 				{ point: eggPoint - amount },
-				{ where: { userid: message.author.id } }
+				{ where: { userid: target.id } }
 			);
 		}
 
