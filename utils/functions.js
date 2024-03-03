@@ -8,4 +8,32 @@ module.exports = {
 
 		return await Model.findOne({ where: { userid: user.id } });
 	},
+
+	getMemberFromArguments: async (message, argument) => {
+		if (!argument) {
+			return null;
+		}
+
+		const memberToFind = argument.toLowerCase();
+
+		if (message.mentions.members.first()) {
+			return message.mentions.members.first();
+		}
+
+		if (!Number.isNaN(Number(memberToFind))) {
+			const fetched = await message.guild.members
+				.fetch(memberToFind)
+				.catch(() => null);
+
+			if (fetched) {
+				return fetched;
+			}
+		}
+
+		return message.guild.members.cache.find(
+			(target) =>
+				target.displayName.toLowerCase().includes(memberToFind) ||
+				target.user.tag.toLowerCase().includes(memberToFind)
+		);
+	},
 };

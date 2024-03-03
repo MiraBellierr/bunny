@@ -40,6 +40,6 @@ module.exports = {
 
 		client.egg.id = "";
 
-		message.channel.send(`${message.member.displayName} has claimed the egg!`);
+		message.channel.send(`${message.member} has claimed the egg!`);
 	},
 };
