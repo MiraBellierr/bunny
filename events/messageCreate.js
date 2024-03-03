@@ -84,6 +84,11 @@ module.exports = async (client, message) => {
 				Math.floor(Math.random() * 100) <= 10
 			) {
 				before = message.author.id;
+				const previousEgg =
+					(await message.channel.messages.fetch(client.egg.id)) || null;
+
+				if (previousEgg) previousEgg.delete();
+
 				const msg = await channel.send("🥚");
 
 				client.egg = {

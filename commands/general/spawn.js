@@ -14,31 +14,25 @@
    limitations under the License.
  */
 
-const functions = require("../../utils/functions");
-const { Egg } = require("../../database/schemas/egg");
-
 module.exports = {
-	name: "claim",
+	name: "spawn",
 	run: async (client, message) => {
+		if (message.author.id !== "548050617889980426") return;
+
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
 		if (message.channel.id !== channel.id) return;
-		if (!client.egg.id) return;
-
-		const eggData = await functions.getUserData(Egg(), message.author);
-		const point = eggData.get("point");
-
-		Egg().update(
-			{ point: point + 1 },
-			{ where: { userid: message.author.id } }
-		);
 
 		const eggMessage =
 			(await message.channel.messages.fetch(client.egg.id)) || null;
 		eggMessage.delete();
 
-		client.egg = {};
+		const spawnEgg = await channel.send("🥚");
 
-		message.channel.send(`${message.member.displayName} has claimed the egg!`);
+		client.egg = {
+			id: spawnEgg.id,
+		};
+
+		message.channel.send("Successfully spawned an egg!");
 	},
 };
