@@ -38,7 +38,7 @@ module.exports = {
 			{ where: { userid: message.author.id } }
 		);
 
-		message.channel.send(`${message.member} dropped an egg!`);
+		message.channel.send(`${message.member} dropped an egg! \`-1\``);
 
 		const eggMessage = await message.channel.send("🥚");
 

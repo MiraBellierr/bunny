@@ -19,8 +19,8 @@ module.exports = {
 	run: async (client, message, args) => {
 		if (message.author.id !== "548050617889980426") return;
 
-		if (!args[0].length) {
-			message.channel.send(`The spawn rate" ${client.egg.rate}%`);
+		if (!args[0]) {
+			message.channel.send(`The spawn rate: ${client.egg.rate}%`);
 		}
 
 		const rate = args[0];
