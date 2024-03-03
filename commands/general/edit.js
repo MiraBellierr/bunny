@@ -24,7 +24,7 @@ module.exports = {
 
 		if (!args[0].length) return;
 
-		const target = getUserFromArguments(message, args[0]);
+		const target = await getUserFromArguments(message, args[0]);
 
 		const targetEggs = await getUserData(Egg(), target);
 
