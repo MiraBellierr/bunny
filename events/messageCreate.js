@@ -75,8 +75,6 @@ module.exports = async (client, message) => {
 			client.cooldown === null ||
 			timer - (Date.now() - client.cooldown) < 1
 		) {
-			client.cooldown = Date.now();
-
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 			const random = Math.floor(Math.random() * 100);
 			console.log(`Random: ${random}\nRate: ${client.egg.rate}`);
@@ -89,6 +87,8 @@ module.exports = async (client, message) => {
 				if (previousEgg) previousEgg.delete();
 
 				const msg = await channel.send("🥚");
+
+				client.cooldown = Date.now();
 
 				client.egg.id = msg.id;
 			}
