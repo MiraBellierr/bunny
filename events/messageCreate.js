@@ -79,10 +79,9 @@ module.exports = async (client, message) => {
 
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 			const random = Math.floor(Math.random() * 100);
+			console.log(`Random: ${random}\nRate: ${client.egg.rate}`);
 
 			if (before !== message.author.id && random <= client.egg.rate) {
-				console.log(`Random: ${random}\nRate: ${client.egg.rate}`);
-
 				before = message.author.id;
 				const previousEgg =
 					(await message.channel.messages.fetch(client.egg.id)) || null;
