@@ -89,6 +89,7 @@ module.exports = async (client, message) => {
 				const msg = await channel.send("🥚");
 
 				client.cooldown = Date.now();
+				client.drop = "";
 
 				client.egg.id = msg.id;
 			}
