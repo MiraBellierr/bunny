@@ -46,6 +46,6 @@ module.exports = {
 		client.egg.drop = "";
 		client.egg.followupId = "";
 
-		message.channel.send(`${message.member} has claimed the egg!`);
+		message.channel.send({ content: `${message.member} has claimed the egg!`, allowedMentions: { repliedUser: false, users: [] }	 });
 	},
 };
