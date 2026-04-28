@@ -26,8 +26,12 @@ module.exports = {
 		eggMessage.delete();
 
 		const spawnEgg = await channel.send("<:DColon:881068692174159882>");
+		    const msg2 = await channel.send(
+      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most <:DColon:881068692174159882> will get a mystery gift!`,
+    );
 
 		client.egg.id = spawnEgg.id;
+		client.egg.followupId = msg2.id;
 
 		message.channel.send("Successfully spawned <:DColon:881068692174159882>!");
 	},
