@@ -49,7 +49,7 @@ client.cooldown = null;
 client.egg = {
 	id: "",
 	followupId: "",
-	rate: 30,
+	rate: process.env.rate || 30,
 	drop: "",
 };
 

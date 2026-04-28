@@ -87,7 +87,7 @@ module.exports = async (client, message) => {
 				if (previousEgg) previousEgg.delete();
 
 				const msg = await channel.send("🥚");
-				const msg2 = await channel.send(`-# type \`${process.env.PREFIX}claim\` to claim it!`);
+				const msg2 = await channel.send(`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`);
 
 				client.cooldown = Date.now();
 				client.egg.drop = "";
