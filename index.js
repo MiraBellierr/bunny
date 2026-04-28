@@ -49,7 +49,7 @@ client.cooldown = null;
 client.egg = {
 	id: "",
 	followupId: "",
-	rate: 100,
+	rate: 30,
 	drop: "",
 };
 
