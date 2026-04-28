@@ -37,10 +37,14 @@ module.exports = {
 
 		const eggMessage =
 			(await message.channel.messages.fetch(client.egg.id)) || null;
-		eggMessage.delete();
+		if (eggMessage) eggMessage.delete();
+		const followupMessage =
+			(await message.channel.messages.fetch(client.egg.followupId)) || null;
+		if (followupMessage) followupMessage.delete();
 
 		client.egg.id = "";
 		client.egg.drop = "";
+		client.egg.followupId = "";
 
 		message.channel.send(`${message.member} has claimed the egg!`);
 	},

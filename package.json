@@ -5,10 +5,10 @@
   "main": "index.js",
   "dependencies": {
     "ascii-table": "^0.0.9",
-    "discord.js": "^14.14.1",
-    "dotenv": "^16.4.5",
-    "sequelize": "^6.37.1",
-    "sqlite3": "^5.1.7"
+    "discord.js": "^14.26.3",
+    "dotenv": "^17.4.2",
+    "sequelize": "^6.37.8",
+    "sqlite3": "^6.0.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

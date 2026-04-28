@@ -48,7 +48,8 @@ client.categories = fs.readdirSync("./commands/");
 client.cooldown = null;
 client.egg = {
 	id: "",
-	rate: 30,
+	followupId: "",
+	rate: 100,
 	drop: "",
 };
 
