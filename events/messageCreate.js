@@ -68,7 +68,7 @@ module.exports = async (client, message) => {
 		}
 	}
 
-	const timer = 60000;
+	const timer = 1000 * 60 * 10;
 
 	if (message.channel.id === process.env.CHANNEL) {
 		if (
