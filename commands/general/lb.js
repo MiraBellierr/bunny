@@ -39,7 +39,7 @@ module.exports = {
 				leaderboard.push(
 					`**[${index + 1}]** - ${user.toString()}: \`${
 						egg.dataValues.point
-					}\` eggs`
+					}\` <:DColon:881068692174159882>`
 				);
 			} else {
 				userIndex = index;
@@ -47,7 +47,7 @@ module.exports = {
 				leaderboard.push(
 					`---> **[${index + 1}]** - ${user.toString()}: \`${
 						egg.dataValues.point
-					}\` eggs`
+					}\` <:DColon:881068692174159882>`
 				);
 			}
 		});
@@ -70,7 +70,7 @@ module.exports = {
 				leaderboard.push(
 					`--> **[${userIndex + 1}]** - ${message.author}: \`${userEgg.get(
 						"point"
-					)}\` eggs`
+					)}\` <:DColon:881068692174159882>`
 				);
 			}
 		}

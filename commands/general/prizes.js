@@ -21,7 +21,7 @@ module.exports = {
 	category: "general",
 	run: async (client, message) => {
 		const embed = new EmbedBuilder()
-			.setTitle("🏆 Egg Hunt Prize")
+			.setTitle("🏆 Dcolon Hunt Prize")
 			.setDescription(
 				`**🥇 Winner:** Mystery Gift!\n\n` +
 				`**Prize Contents:**\n` +
@@ -30,7 +30,7 @@ module.exports = {
 				`• Express Supply Pass (Honkai: Star Rail)\n` +
 				`• Inter-Knot Membership (Zenless Zone Zero)\n` +
 				`• Monthly Pass (Arknights: Endfield)\n\n` +
-				`The winner will be announced at the end of the egg hunt event!`
+				`The winner will be announced at the end of the <:DColon:881068692174159882> hunt event!`
 			)
 			.setColor("#FFD700");
 

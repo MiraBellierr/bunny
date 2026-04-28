@@ -25,10 +25,10 @@ module.exports = {
 			(await message.channel.messages.fetch(client.egg.id)) || null;
 		eggMessage.delete();
 
-		const spawnEgg = await channel.send("🥚");
+		const spawnEgg = await channel.send("<:DColon:881068692174159882>");
 
 		client.egg.id = spawnEgg.id;
 
-		message.channel.send("Successfully spawned an egg!");
+		message.channel.send("Successfully spawned <:DColon:881068692174159882>!");
 	},
 };
