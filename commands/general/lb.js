@@ -75,7 +75,9 @@ module.exports = {
 			}
 		}
 
-		const embed = new EmbedBuilder().setDescription(leaderboard.join("\n"));
+		const embed = new EmbedBuilder().setDescription(leaderboard.join("\n")).setFooter({
+			text: `The winner will get a mystery gift! ${process.env.PREFIX}prizes to see the prizes!`,
+		});
 
 		message.channel.send({ embeds: [embed] });
 	},
