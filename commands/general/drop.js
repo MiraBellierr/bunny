@@ -42,9 +42,9 @@ module.exports = {
 
     message.channel.send(`${message.member} dropped an egg! \`-1\``);
 
-    const eggMessage = await message.channel.send("<:DColon:881068692174159882>");
+    const eggMessage = await message.channel.send("🥚");
     const msg2 = await channel.send(
-      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most <:DColon:881068692174159882> will get a mystery gift!`,
+      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`,
     );
 
     client.egg.id = eggMessage.id;

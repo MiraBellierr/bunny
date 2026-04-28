@@ -47,7 +47,7 @@ module.exports = {
 		}
 
 		message.channel.send(
-			`Successfully ${args[1]} ${amount} <:DColon:881068692174159882> to ${target.username}.`
+			`Successfully ${args[1]} ${amount} eggs to ${target.username}.`
 		);
 	},
 };

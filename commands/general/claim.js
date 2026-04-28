@@ -46,6 +46,6 @@ module.exports = {
 		client.egg.drop = "";
 		client.egg.followupId = "";
 
-		message.channel.send(`${message.member} has claimed the <:DColon:881068692174159882>!`);
+		message.channel.send(`${message.member} has claimed the egg!`);
 	},
 };

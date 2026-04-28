@@ -25,14 +25,14 @@ module.exports = {
 			(await message.channel.messages.fetch(client.egg.id)) || null;
 		eggMessage.delete();
 
-		const spawnEgg = await channel.send("<:DColon:881068692174159882>");
+		const spawnEgg = await channel.send("🥚");
 		    const msg2 = await channel.send(
-      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most <:DColon:881068692174159882> will get a mystery gift!`,
+      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`,
     );
 
 		client.egg.id = spawnEgg.id;
-		client.egg.followupId = msg2.id;
+	 	client.egg.followupId = msg2.id;
 
-		message.channel.send("Successfully spawned <:DColon:881068692174159882>!");
+		message.channel.send("Successfully spawned an egg!");
 	},
 };
