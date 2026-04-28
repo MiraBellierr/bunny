@@ -29,7 +29,7 @@ module.exports = {
 				`• 284 Diamonds (Mobile Legends: Bang Bang)\n` +
 				`• Express Supply Pass (Honkai: Star Rail)\n` +
 				`• Inter-Knot Membership (Zenless Zone Zero)\n` +
-				`• Monthly Pass (Arknights)\n\n` +
+				`• Monthly Pass (Arknights: Endfield)\n\n` +
 				`The winner will be announced at the end of the egg hunt event!`
 			)
 			.setColor("#FFD700");
