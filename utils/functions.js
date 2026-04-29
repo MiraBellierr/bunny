@@ -1,12 +1,13 @@
 module.exports = {
 	getUserData: async (Model, user) => {
-		if (!(await Model.findOne({ where: { userid: user.id } }))) {
-			await Model.create({
+		const [userData] = await Model.findOrCreate({
+			where: { userid: user.id },
+			defaults: {
 				userid: user.id,
-			});
-		}
+			},
+		});
 
-		return await Model.findOne({ where: { userid: user.id } });
+		return userData;
 	},
 
 	getMemberFromArguments: async (message, argument) => {
@@ -21,9 +22,7 @@ module.exports = {
 		}
 
 		if (!Number.isNaN(Number(memberToFind))) {
-			const fetched = await message.guild.members
-				.fetch(memberToFind)
-				.catch(() => null);
+			const fetched = await message.guild.members.fetch(memberToFind).catch(() => null);
 
 			if (fetched) {
 				return fetched;
@@ -49,9 +48,7 @@ module.exports = {
 		}
 
 		if (!Number.isNaN(Number(userToFind))) {
-			const fetched = await message.client.users
-				.fetch(userToFind)
-				.catch(() => null);
+			const fetched = await message.client.users.fetch(userToFind).catch(() => null);
 
 			if (fetched) {
 				return fetched;

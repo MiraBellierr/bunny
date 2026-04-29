@@ -16,6 +16,19 @@
 
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
+const logger = require("../../utils/logger");
+const { rollClaimedEggs } = require("../../utils/egg");
+const CLAIM_LOCK_MS = 10 * 1000;
+const DEFAULT_STREAK_TIER_SIZE = 5;
+
+const getClaimStreakTierSize = () => {
+	const parsedTierSize = Number.parseInt(process.env.CLAIM_STREAK_TIER_SIZE || "", 10);
+	if (Number.isNaN(parsedTierSize) || parsedTierSize < 1) {
+		return DEFAULT_STREAK_TIER_SIZE;
+	}
+
+	return parsedTierSize;
+};
 
 module.exports = {
 	name: "claim",
@@ -27,29 +40,74 @@ module.exports = {
 		if (message.channel.id !== channel.id) return;
 		if (!client.egg.id) return;
 
-		const eggData = await functions.getUserData(Egg(), message.author);
-		const point = eggData.get("point");
-		const claimedEggs = Math.floor(Math.random() * 10) + 1;
+		const activeLock = client.egg.claimLock;
+		if (activeLock && activeLock.eggId === client.egg.id && Date.now() < activeLock.expiresAt)
+			return;
 
-		Egg().update(
-			{ point: point + claimedEggs },
-			{ where: { userid: message.author.id } }
-		);
+		const lockToken = `${message.id}:${Date.now()}`;
+		const claimedEggId = client.egg.id;
+		const claimedFollowupId = client.egg.followupId;
+		const claimedIsGolden = Boolean(client.egg.isGolden);
+		client.egg.claimLock = {
+			token: lockToken,
+			eggId: claimedEggId,
+			expiresAt: Date.now() + CLAIM_LOCK_MS,
+		};
 
-		const eggMessage =
-			(await message.channel.messages.fetch(client.egg.id)) || null;
-		if (eggMessage) eggMessage.delete();
-		const followupMessage =
-			(await message.channel.messages.fetch(client.egg.followupId)) || null;
-		if (followupMessage) followupMessage.delete();
+		try {
+			await functions.getUserData(Egg(), message.author);
+			const currentStreak = client.egg.claimStreak || { userId: "", count: 0 };
+			const nextStreakCount =
+				currentStreak.userId === message.author.id ? currentStreak.count + 1 : 1;
+			const streakTierSize = getClaimStreakTierSize();
+			const streakBonus = Math.floor(nextStreakCount / streakTierSize);
+			const claimedEggs = rollClaimedEggs(claimedIsGolden);
+			const totalClaimedEggs = claimedEggs + streakBonus;
 
-		client.egg.id = "";
-		client.egg.drop = "";
-		client.egg.followupId = "";
+			await Egg().increment(
+				{ point: totalClaimedEggs },
+				{ where: { userid: message.author.id } }
+			);
+			client.egg.claimStreak = {
+				userId: message.author.id,
+				count: nextStreakCount,
+			};
 
-		message.channel.send({
-			content: `${message.member} has claimed the egg! \`+${claimedEggs}\` eggs`,
-			allowedMentions: { repliedUser: false, users: [] },
-		});
+			if (client.egg.id === claimedEggId) {
+				client.egg.id = "";
+				client.egg.drop = "";
+				client.egg.followupId = "";
+				client.egg.isGolden = false;
+			}
+
+			const eggMessage = await message.channel.messages.fetch(claimedEggId).catch(() => null);
+			if (eggMessage) await eggMessage.delete().catch(() => null);
+
+			const followupMessage = await message.channel.messages
+				.fetch(claimedFollowupId)
+				.catch(() => null);
+			if (followupMessage) await followupMessage.delete().catch(() => null);
+
+			await message.channel.send({
+				content: claimedIsGolden
+					? `${message.member} has claimed a GOLDEN egg! ✨ \`+${totalClaimedEggs}\` eggs`
+					: `${message.member} has claimed the egg! \`+${totalClaimedEggs}\` eggs`,
+				allowedMentions: { repliedUser: false, users: [] },
+			});
+
+			if (streakBonus > 0) {
+				await message.channel.send(
+					`Streak bonus: \`+${streakBonus}\` (streak ${nextStreakCount}, tier size ${streakTierSize})`
+				);
+			}
+
+			logger.info(
+				`Egg claimed | user=${message.author.id} reward=${totalClaimedEggs} baseReward=${claimedEggs} streakBonus=${streakBonus} streakCount=${nextStreakCount} eggMessage=${claimedEggId} golden=${claimedIsGolden}`
+			);
+		} finally {
+			if (client.egg.claimLock && client.egg.claimLock.token === lockToken) {
+				client.egg.claimLock = null;
+			}
+		}
 	},
 };

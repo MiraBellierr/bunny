@@ -16,39 +16,37 @@
 
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
+const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
 
 module.exports = {
-  name: "drop",
-  category: "general",
-  run: async (client, message) => {
-    const channel = await client.channels.fetch(process.env.CHANNEL);
+	name: "drop",
+	category: "general",
+	run: async (client, message) => {
+		const channel = await client.channels.fetch(process.env.CHANNEL);
 
-    if (message.channel.id !== channel.id) return;
+		if (message.channel.id !== channel.id) return;
 
-    if (client.egg.id)
-      return message.channel.send(
-        "There is still an egg in the channel! Claim it fast!!",
-      );
+		if (client.egg.id)
+			return message.channel.send("There is still an egg in the channel! Claim it fast!!");
 
-    const eggData = await functions.getUserData(Egg(), message.author);
-    const point = eggData.get("point");
+		const eggData = await functions.getUserData(Egg(), message.author);
+		const point = eggData.get("point");
 
-    if (point < 1) return message.channel.send("You don't have any eggs :(");
+		if (point < 1) return message.channel.send("You don't have any eggs :(");
 
-    Egg().update(
-      { point: point - 1 },
-      { where: { userid: message.author.id } },
-    );
+		Egg().update({ point: point - 1 }, { where: { userid: message.author.id } });
 
-    message.channel.send(`${message.member} dropped an egg! \`-1\``);
+		message.channel.send(`${message.member} dropped an egg! \`-1\``);
 
-    const eggMessage = await message.channel.send("🥚");
-    const msg2 = await channel.send(
-      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`,
-    );
+		const isGolden = rollGoldenEgg();
+		const eggMessage = await message.channel.send(getEggMessage(isGolden));
+		const msg2 = await channel.send(
+			`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`
+		);
 
-    client.egg.id = eggMessage.id;
-    client.egg.drop = message.author.id;
-    client.egg.followupId = msg2.id;
-  },
+		client.egg.id = eggMessage.id;
+		client.egg.drop = message.author.id;
+		client.egg.followupId = msg2.id;
+		client.egg.isGolden = isGolden;
+	},
 };

@@ -14,6 +14,9 @@
    limitations under the License.
  */
 
+const logger = require("../../utils/logger");
+const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
+
 module.exports = {
 	name: "spawn",
 	run: async (client, message) => {
@@ -21,17 +24,23 @@ module.exports = {
 
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
-		const eggMessage =
-			(await message.channel.messages.fetch(client.egg.id)) || null;
-		eggMessage.delete();
+		const eggMessage = client.egg.id
+			? await message.channel.messages.fetch(client.egg.id).catch(() => null)
+			: null;
+		if (eggMessage) await eggMessage.delete().catch(() => null);
 
-		const spawnEgg = await channel.send("🥚");
-		    const msg2 = await channel.send(
-      `-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`,
-    );
+		const isGolden = rollGoldenEgg();
+		const spawnEgg = await channel.send(getEggMessage(isGolden));
+		const msg2 = await channel.send(
+			`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`
+		);
 
 		client.egg.id = spawnEgg.id;
-	 	client.egg.followupId = msg2.id;
+		client.egg.followupId = msg2.id;
+		client.egg.isGolden = isGolden;
+		logger.info(
+			`Egg manually spawned | user=${message.author.id} channel=${channel.id} eggMessage=${spawnEgg.id} golden=${isGolden}`
+		);
 
 		message.channel.send("Successfully spawned an egg!");
 	},

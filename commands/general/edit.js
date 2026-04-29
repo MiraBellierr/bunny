@@ -22,32 +22,25 @@ module.exports = {
 	run: async (client, message, args) => {
 		if (message.author.id !== "548050617889980426") return;
 
-		if (!args[0].length) return;
+		if (!args[0] || !args[0].length) return;
 
 		const target = await getUserFromArguments(message, args[0]);
+		if (!target) return message.channel.send("User not found.");
 
 		const targetEggs = await getUserData(Egg(), target);
 
 		const eggPoint = targetEggs.get("point");
 
-		if (!args[2] || isNaN[2]) return message.channel.send("add/minus amount");
+		if (!args[2] || isNaN(args[2])) return message.channel.send("add/minus amount");
 
 		const amount = parseInt(args[2]);
 
 		if (args[1] === "add") {
-			Egg().update(
-				{ point: eggPoint + amount },
-				{ where: { userid: target.id } }
-			);
+			Egg().update({ point: eggPoint + amount }, { where: { userid: target.id } });
 		} else if (args[1] === "minus") {
-			Egg().update(
-				{ point: eggPoint - amount },
-				{ where: { userid: target.id } }
-			);
+			Egg().update({ point: eggPoint - amount }, { where: { userid: target.id } });
 		}
 
-		message.channel.send(
-			`Successfully ${args[1]} ${amount} eggs to ${target.username}.`
-		);
+		message.channel.send(`Successfully ${args[1]} ${amount} eggs to ${target.username}.`);
 	},
 };

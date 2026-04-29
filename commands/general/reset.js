@@ -21,10 +21,7 @@ module.exports = {
 	name: "reset",
 	category: "general",
 	run: async (client, message) => {
-		if (
-			!message.member.permissions.has(PermissionsBitField.Flags.Administrator)
-		)
-			return;
+		if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
 
 		await Egg().truncate();
 

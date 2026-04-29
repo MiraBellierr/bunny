@@ -32,25 +32,21 @@ module.exports = {
 		const leaderboard = [];
 		let userIndex = -1;
 
-		await top10Users.forEach(async (egg, index) => {
-			const user = await client.users.fetch(egg.dataValues.userid);
+		for (const [index, egg] of top10Users.entries()) {
+			const user = await client.users.fetch(egg.dataValues.userid).catch(() => null);
+			const userLabel = user ? user.toString() : `<@${egg.dataValues.userid}>`;
+			const isCurrentUser = egg.dataValues.userid === message.author.id;
 
-			if (user.id !== message.author.id) {
-				leaderboard.push(
-					`**[${index + 1}]** - ${user.toString()}: \`${
-						egg.dataValues.point
-					}\` eggs`
-				);
+			if (!isCurrentUser) {
+				leaderboard.push(`**[${index + 1}]** - ${userLabel}: \`${egg.dataValues.point}\` eggs`);
 			} else {
 				userIndex = index;
 
 				leaderboard.push(
-					`---> **[${index + 1}]** - ${user.toString()}: \`${
-						egg.dataValues.point
-					}\` eggs`
+					`---> **[${index + 1}]** - ${userLabel}: \`${egg.dataValues.point}\` eggs`
 				);
 			}
-		});
+		}
 
 		if (userIndex === -1) {
 			const userEgg = await Egg().findOne({
@@ -68,9 +64,7 @@ module.exports = {
 				}
 
 				leaderboard.push(
-					`--> **[${userIndex + 1}]** - ${message.author}: \`${userEgg.get(
-						"point"
-					)}\` eggs`
+					`--> **[${userIndex + 1}]** - ${message.author}: \`${userEgg.get("point")}\` eggs`
 				);
 			}
 		}

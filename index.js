@@ -17,14 +17,21 @@
 require("dotenv").config();
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
-const Sequelize = require("sequelize");
+require("./database/sequelize");
 
-new Sequelize("database", "user", "password", {
-	host: "localhost",
-	dialect: "sqlite",
-	logging: false,
-	storage: "./database/database.sqlite",
-});
+const requiredEnvVars = ["TOKEN", "PREFIX", "CHANNEL"];
+const missingEnvVars = requiredEnvVars.filter(
+	(name) => !process.env[name] || !process.env[name].trim()
+);
+
+if (missingEnvVars.length) {
+	console.error(
+		`[BOOT ERROR] Missing required environment variable(s): ${missingEnvVars.join(
+			", "
+		)}.\nPlease set TOKEN, PREFIX, and CHANNEL in your .env file.`
+	);
+	process.exit(1);
+}
 
 const client = new Client({
 	allowedMentions: { parse: ["users"] },
@@ -49,8 +56,14 @@ client.cooldown = null;
 client.egg = {
 	id: "",
 	followupId: "",
-	rate: process.env.rate || 30,
+	rate: process.env.rate || 3,
 	drop: "",
+	isGolden: false,
+	activityTimestamps: [],
+	claimStreak: {
+		userId: "",
+		count: 0,
+	},
 };
 
 ["command", "event"].forEach((handler) => {

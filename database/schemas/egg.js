@@ -15,13 +15,7 @@
  */
 
 const Sequelize = require("sequelize");
-
-const sequelize = new Sequelize("database", "user", "password", {
-	host: "localhost",
-	dialect: "sqlite",
-	logging: console.log,
-	storage: "database.sqlite",
-});
+const sequelize = require("../sequelize");
 
 const Egg = function () {
 	const eggSchema = sequelize.define("Egg", {

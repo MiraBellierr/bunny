@@ -15,6 +15,9 @@
  */
 
 const { PermissionsBitField } = require("discord.js");
+const logger = require("../utils/logger");
+const { rollGoldenEgg, getEggMessage } = require("../utils/egg");
+const { getActivityWindowMs, getEffectiveSpawnRate } = require("../utils/spawnRate");
 let before = "";
 
 module.exports = async (client, message) => {
@@ -22,9 +25,7 @@ module.exports = async (client, message) => {
 	if (message.author.bot) return;
 
 	if (
-		!message.guild.members.me.permissions.has(
-			PermissionsBitField.Flags.SendMessages
-		) ||
+		!message.guild.members.me.permissions.has(PermissionsBitField.Flags.SendMessages) ||
 		!message.guild.members.me
 			.permissionsIn(message.channel)
 			.has(PermissionsBitField.Flags.SendMessages)
@@ -34,12 +35,9 @@ module.exports = async (client, message) => {
 	const prefix = process.env.PREFIX;
 
 	if (message.content.startsWith(prefix)) {
-		if (!message.member)
-			message.member = await message.guild.fetchMember(message);
+		if (!message.member) message.member = await message.guild.members.fetch(message.author.id);
 		if (
-			!message.guild.members.me.permissions.has(
-				PermissionsBitField.Flags.ReadMessageHistory
-			) ||
+			!message.guild.members.me.permissions.has(PermissionsBitField.Flags.ReadMessageHistory) ||
 			!message.guild.members.me
 				.permissionsIn(message.channel)
 				.has(PermissionsBitField.Flags.ReadMessageHistory)
@@ -58,41 +56,61 @@ module.exports = async (client, message) => {
 
 		try {
 			if (command) {
-				command.run(client, message, args);
+				await command.run(client, message, args);
 			}
 		} catch (error) {
 			console.error(error);
-			message.reply(
-				`there was an error trying to execute that command! \n\`${error}\``
-			);
+			message.reply(`there was an error trying to execute that command! \n\`${error}\``);
 		}
 	}
 
 	const timer = 1000 * 60 * 10;
 
 	if (message.channel.id === process.env.CHANNEL) {
-		if (
-			client.cooldown === null ||
-			timer - (Date.now() - client.cooldown) < 1
-		) {
+		const now = Date.now();
+		const activityWindowMs = getActivityWindowMs();
+		const activityTimestamps = Array.isArray(client.egg.activityTimestamps)
+			? client.egg.activityTimestamps
+			: [];
+
+		activityTimestamps.push(now);
+		client.egg.activityTimestamps = activityTimestamps.filter(
+			(timestamp) => timestamp >= now - activityWindowMs
+		);
+
+		const activityCount = client.egg.activityTimestamps.length;
+		const effectiveRate = getEffectiveSpawnRate({
+			baseRate: client.egg.rate,
+			activityCount,
+		});
+
+		if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 			const random = Math.floor(Math.random() * 100);
-			console.log(`Random: ${random}\nRate: ${client.egg.rate}`);
+			logger.info(
+				`Egg roll check | random=${random} baseRate=${client.egg.rate} effectiveRate=${effectiveRate} activity=${activityCount}`
+			);
 
-			if (before !== message.author.id && random <= client.egg.rate) {
+			if (before !== message.author.id && random <= effectiveRate) {
 				before = message.author.id;
-				const previousEgg =
-					(await message.channel.messages.fetch(client.egg.id)) || null;
+				const previousEgg = (await message.channel.messages.fetch(client.egg.id)) || null;
 
 				if (previousEgg) previousEgg.delete();
 
-				const msg = await channel.send("🥚");
-				const msg2 = await channel.send(`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`);
+				const isGolden = rollGoldenEgg();
+				const msg = await channel.send(getEggMessage(isGolden));
+				const msg2 = await channel.send(
+					`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`
+				);
 
 				client.cooldown = Date.now();
 				client.egg.drop = "";
 				client.egg.followupId = msg2.id;
 				client.egg.id = msg.id;
+				client.egg.isGolden = isGolden;
+				logger.info(
+					`Egg spawned | channel=${channel.id} eggMessage=${msg.id} golden=${isGolden}`
+				);
 			}
 		}
 	}
