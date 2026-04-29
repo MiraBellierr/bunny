@@ -47,7 +47,8 @@ module.exports = {
 		const lockToken = `${message.id}:${Date.now()}`;
 		const claimedEggId = client.egg.id;
 		const claimedFollowupId = client.egg.followupId;
-		const claimedIsGolden = Boolean(client.egg.isGolden);
+		const claimedIsDroppedEgg = Boolean(client.egg.drop);
+		const claimedIsGolden = !claimedIsDroppedEgg && Boolean(client.egg.isGolden);
 		client.egg.claimLock = {
 			token: lockToken,
 			eggId: claimedEggId,
@@ -57,21 +58,29 @@ module.exports = {
 		try {
 			await functions.getUserData(Egg(), message.author);
 			const currentStreak = client.egg.claimStreak || { userId: "", count: 0 };
-			const nextStreakCount =
-				currentStreak.userId === message.author.id ? currentStreak.count + 1 : 1;
+			const shouldTrackStreak = !claimedIsDroppedEgg;
+			const nextStreakCount = shouldTrackStreak
+				? currentStreak.userId === message.author.id
+					? currentStreak.count + 1
+					: 1
+				: currentStreak.count;
 			const streakTierSize = getClaimStreakTierSize();
-			const streakBonus = Math.floor(nextStreakCount / streakTierSize);
-			const claimedEggs = rollClaimedEggs(claimedIsGolden);
+			const streakBonus = shouldTrackStreak
+				? Math.floor(nextStreakCount / streakTierSize)
+				: 0;
+			const claimedEggs = claimedIsDroppedEgg ? 1 : rollClaimedEggs(claimedIsGolden);
 			const totalClaimedEggs = claimedEggs + streakBonus;
 
 			await Egg().increment(
 				{ point: totalClaimedEggs },
 				{ where: { userid: message.author.id } }
 			);
-			client.egg.claimStreak = {
-				userId: message.author.id,
-				count: nextStreakCount,
-			};
+			if (shouldTrackStreak) {
+				client.egg.claimStreak = {
+					userId: message.author.id,
+					count: nextStreakCount,
+				};
+			}
 
 			if (client.egg.id === claimedEggId) {
 				client.egg.id = "";
@@ -102,7 +111,7 @@ module.exports = {
 			}
 
 			logger.info(
-				`Egg claimed | user=${message.author.id} reward=${totalClaimedEggs} baseReward=${claimedEggs} streakBonus=${streakBonus} streakCount=${nextStreakCount} eggMessage=${claimedEggId} golden=${claimedIsGolden}`
+				`Egg claimed | user=${message.author.id} reward=${totalClaimedEggs} baseReward=${claimedEggs} streakBonus=${streakBonus} streakCount=${nextStreakCount} eggMessage=${claimedEggId} golden=${claimedIsGolden} dropped=${claimedIsDroppedEgg}`
 			);
 		} finally {
 			if (client.egg.claimLock && client.egg.claimLock.token === lockToken) {

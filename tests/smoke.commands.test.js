@@ -243,6 +243,84 @@ test("claim smoke: streak tier adds bonus points", async () => {
 	assert.match(channel.sentPayloads[1], /Streak bonus: `\+1`/);
 });
 
+test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses", async () => {
+	process.env.CHANNEL = "chan-1";
+	process.env.CLAIM_STREAK_TIER_SIZE = "1";
+	const channel = createChannel("chan-1");
+	const eggDeleteState = { deleted: false };
+	const followupDeleteState = { deleted: false };
+
+	channel.messageMap.set("egg-drop-1", {
+		delete: async () => {
+			eggDeleteState.deleted = true;
+		},
+	});
+	channel.messageMap.set("followup-drop-1", {
+		delete: async () => {
+			followupDeleteState.deleted = true;
+		},
+	});
+
+	const incrementCalls = [];
+	const claimCommand = loadModuleWithMocks(CLAIM_COMMAND_PATH, {
+		[FUNCTIONS_MODULE_PATH]: {
+			getUserData: async () => ({ get: () => 0 }),
+		},
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: () => ({
+				increment: async (...args) => {
+					incrementCalls.push(args);
+				},
+			}),
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		channels: { fetch: async () => channel },
+		egg: {
+			id: "egg-drop-1",
+			followupId: "followup-drop-1",
+			drop: "dropper-1",
+			isGolden: true,
+			claimStreak: {
+				userId: "user-2",
+				count: 7,
+			},
+		},
+	};
+	const message = {
+		id: "msg-claim-drop-1",
+		author: { id: "user-2" },
+		member: "<@user-2>",
+		channel,
+	};
+
+	const originalRandom = Math.random;
+	Math.random = () => 0.999;
+
+	try {
+		await claimCommand.run(client, message);
+	} finally {
+		Math.random = originalRandom;
+	}
+
+	assert.equal(incrementCalls.length, 1);
+	assert.deepEqual(incrementCalls[0][0], { point: 1 });
+	assert.deepEqual(incrementCalls[0][1], { where: { userid: "user-2" } });
+	assert.equal(client.egg.claimStreak.userId, "user-2");
+	assert.equal(client.egg.claimStreak.count, 7);
+	assert.equal(client.egg.id, "");
+	assert.equal(client.egg.followupId, "");
+	assert.equal(client.egg.drop, "");
+	assert.equal(client.egg.isGolden, false);
+	assert.equal(eggDeleteState.deleted, true);
+	assert.equal(followupDeleteState.deleted, true);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.match(channel.sentPayloads[0].content, /has claimed the egg!/);
+	assert.match(channel.sentPayloads[0].content, /`\+1` eggs/);
+});
+
 test("drop smoke: rejects dropping when user has zero eggs", async () => {
 	process.env.CHANNEL = "chan-1";
 	process.env.GOLDEN_EGG_CHANCE = "0";
