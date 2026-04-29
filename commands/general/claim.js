@@ -16,6 +16,8 @@
 
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
+const LATE_CLAIM_WINDOW_MS = 30 * 1000;
+const LATE_CLAIM_REACTION = "<:KEKW:1498968454458245235>";
 
 module.exports = {
 	name: "claim",
@@ -25,7 +27,23 @@ module.exports = {
 
 		if (message.author.id === client.egg.drop) return;
 		if (message.channel.id !== channel.id) return;
-		if (!client.egg.id) return;
+		if (!client.egg.id) {
+			const lateClaim = client.egg.lateClaim;
+			if (!lateClaim) return;
+			if (Date.now() > lateClaim.expiresAt) return;
+			if (message.author.id === lateClaim.winnerId) return;
+			if (lateClaim.reactedUsers.has(message.author.id)) return;
+
+			lateClaim.reactedUsers.add(message.author.id);
+
+			try {
+				await message.react(LATE_CLAIM_REACTION);
+			} catch (error) {
+				lateClaim.reactedUsers.delete(message.author.id);
+			}
+
+			return;
+		}
 
 		const eggData = await functions.getUserData(Egg(), message.author);
 		const point = eggData.get("point");
@@ -46,6 +64,11 @@ module.exports = {
 		client.egg.id = "";
 		client.egg.drop = "";
 		client.egg.followupId = "";
+		client.egg.lateClaim = {
+			winnerId: message.author.id,
+			expiresAt: Date.now() + LATE_CLAIM_WINDOW_MS,
+			reactedUsers: new Set(),
+		};
 
 		message.channel.send({
 			content: `${message.member} has claimed the egg! \`+${claimedEggs}\` eggs`,
