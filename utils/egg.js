@@ -13,7 +13,7 @@ const rollGoldenEgg = () => Math.random() < getGoldenEggChance();
 const getEggMessage = (isGolden) => (isGolden ? "🥚✨" : "🥚");
 
 const rollClaimedEggs = (isGolden) =>
-	isGolden ? Math.floor(Math.random() * 26) + 25 : Math.floor(Math.random() * 10) + 1;
+	isGolden ? Math.floor(Math.random() * 10) + 11 : Math.floor(Math.random() * 10) + 1;
 
 module.exports = {
 	rollGoldenEgg,
