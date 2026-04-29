@@ -1,9 +1,29 @@
 # Bunny
 
 An easter egg Discord bot. An egg will appear randomly in the desire channel when a member is active in the server.
+Current version: `Bunny v1.1.1`
 
 - To claim an egg. do `.claim`
 - To see the leaderboard. do `.lb`
+
+## Versioning
+
+- This project uses Semantic Versioning: `MAJOR.MINOR.PATCH`
+- Track release notes in `CHANGELOG.md`
+- Create a new version locally with:
+
+```
+npm version <major|minor|patch> --no-git-tag-version
+```
+
+- Then commit and tag the release:
+
+```
+git add package.json package-lock.json CHANGELOG.md README.md
+git commit -m "release: vX.Y.Z"
+git tag vX.Y.Z
+git push && git push --tags
+```
 
 ## Run a bot locally
 

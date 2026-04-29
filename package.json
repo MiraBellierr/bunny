@@ -1,6 +1,6 @@
 {
 	"name": "bunny",
-	"version": "1.0.0",
+	"version": "1.1.1",
 	"description": "An easter egg Discord bot. An egg will appear randomly in the desire channel when a member is active in the server.\r * To claim an egg. do `.claim`\r * To see the leaderboard. do `.lb`",
 	"main": "index.js",
 	"dependencies": {
