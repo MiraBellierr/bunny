@@ -17,7 +17,7 @@
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 const LATE_CLAIM_WINDOW_MS = 30 * 1000;
-const LATE_CLAIM_REACTION = "<:KEKW:1498968454458245235>";
+const LATE_CLAIM_REACTION = "1498968454458245235";
 
 module.exports = {
 	name: "claim",
