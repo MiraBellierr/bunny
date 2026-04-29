@@ -29,9 +29,10 @@ module.exports = {
 
 		const eggData = await functions.getUserData(Egg(), message.author);
 		const point = eggData.get("point");
+		const claimedEggs = Math.floor(Math.random() * 10) + 1;
 
 		Egg().update(
-			{ point: point + 1 },
+			{ point: point + claimedEggs },
 			{ where: { userid: message.author.id } }
 		);
 
@@ -46,6 +47,9 @@ module.exports = {
 		client.egg.drop = "";
 		client.egg.followupId = "";
 
-		message.channel.send({ content: `${message.member} has claimed the egg!`, allowedMentions: { repliedUser: false, users: [] }	 });
+		message.channel.send({
+			content: `${message.member} has claimed the egg! \`+${claimedEggs}\` eggs`,
+			allowedMentions: { repliedUser: false, users: [] },
+		});
 	},
 };
