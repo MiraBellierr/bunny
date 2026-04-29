@@ -51,11 +51,6 @@ client.egg = {
 	followupId: "",
 	rate: process.env.rate || 30,
 	drop: "",
-	lateClaim: {
-		winnerId: "",
-		expiresAt: 0,
-		reactedUsers: new Set(),
-	},
 };
 
 ["command", "event"].forEach((handler) => {
