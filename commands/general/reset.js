@@ -15,13 +15,13 @@
  */
 
 const { Egg } = require("../../database/schemas/egg");
-const { PermissionsBitField } = require("discord.js");
+const BOT_OWNER_ID = "548050617889980426";
 
 module.exports = {
 	name: "reset",
 	category: "general",
 	run: async (client, message) => {
-		if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator)) return;
+		if (message.author.id !== BOT_OWNER_ID) return;
 
 		await Egg().truncate();
 
