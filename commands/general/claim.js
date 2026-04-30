@@ -106,7 +106,7 @@ module.exports = {
 
 			if (streakBonus > 0) {
 				await message.channel.send(
-					`Streak bonus: \`+${streakBonus}\` (streak ${nextStreakCount}, tier size ${streakTierSize})`
+					`Streak bonus: \`+${streakBonus}\` (streak ${nextStreakCount})`
 				);
 			}
 
