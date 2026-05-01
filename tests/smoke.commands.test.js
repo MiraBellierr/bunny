@@ -6,6 +6,7 @@ const Module = require("node:module");
 const ROOT = path.resolve(__dirname, "..");
 const CLAIM_COMMAND_PATH = path.join(ROOT, "commands/general/claim.js");
 const LB_COMMAND_PATH = path.join(ROOT, "commands/general/lb.js");
+const RATE_COMMAND_PATH = path.join(ROOT, "commands/general/rate.js");
 const RESET_COMMAND_PATH = path.join(ROOT, "commands/general/reset.js");
 const { getEffectiveSpawnRate } = require("../utils/spawnRate");
 
@@ -378,6 +379,50 @@ test("reset smoke: confirm step truncates database when pending confirmation exi
 	assert.equal(client.resetConfirmation, null);
 	assert.equal(channel.sentPayloads.length, 2);
 	assert.equal(channel.sentPayloads[1], "Database reset");
+});
+
+test("rate smoke: no args returns current rate and exits", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const rateCommand = loadModuleWithMocks(RATE_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			rate: 15,
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await rateCommand.run(client, message, []);
+
+	assert.equal(client.egg.rate, 15);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(channel.sentPayloads[0], "The spawn rate: 15%");
+});
+
+test("rate smoke: values are clamped between 0 and 100", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const rateCommand = loadModuleWithMocks(RATE_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			rate: 15,
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await rateCommand.run(client, message, ["250"]);
+	assert.equal(client.egg.rate, 100);
+	assert.equal(channel.sentPayloads[0], "Successfully changed a spawn rate to 100%!");
+
+	await rateCommand.run(client, message, ["-7"]);
+	assert.equal(client.egg.rate, 0);
+	assert.equal(channel.sentPayloads[1], "Successfully changed a spawn rate to 0%!");
 });
 
 test("lb smoke: sends leaderboard embed with current user marker", async () => {

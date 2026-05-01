@@ -22,15 +22,15 @@ module.exports = {
 		if (!canManageBot(message)) return;
 
 		if (!args[0]) {
-			message.channel.send(`The spawn rate: ${client.egg.rate}%`);
+			return message.channel.send(`The spawn rate: ${client.egg.rate}%`);
 		}
 
-		const rate = args[0];
+		const parsedRate = Number.parseInt(args[0], 10);
+		if (Number.isNaN(parsedRate)) return;
 
-		if (isNaN(rate)) return;
+		const clampedRate = Math.min(100, Math.max(0, parsedRate));
+		client.egg.rate = clampedRate;
 
-		client.egg.rate = parseInt(rate);
-
-		message.channel.send(`Successfully changed a spawn rate to ${rate}%!`);
+		message.channel.send(`Successfully changed a spawn rate to ${clampedRate}%!`);
 	},
 };
