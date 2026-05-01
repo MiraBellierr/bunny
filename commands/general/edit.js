@@ -16,11 +16,12 @@
 
 const { Egg } = require("../../database/schemas/egg");
 const { getUserFromArguments, getUserData } = require("../../utils/functions");
+const { canManageBot } = require("../../utils/auth");
 
 module.exports = {
 	name: "edit",
 	run: async (client, message, args) => {
-		if (message.author.id !== "548050617889980426") return;
+		if (!canManageBot(message)) return;
 
 		if (!args[0] || !args[0].length) return;
 

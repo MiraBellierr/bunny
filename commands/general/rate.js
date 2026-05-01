@@ -14,10 +14,12 @@
    limitations under the License.
  */
 
+const { canManageBot } = require("../../utils/auth");
+
 module.exports = {
 	name: "rate",
 	run: async (client, message, args) => {
-		if (message.author.id !== "548050617889980426") return;
+		if (!canManageBot(message)) return;
 
 		if (!args[0]) {
 			message.channel.send(`The spawn rate: ${client.egg.rate}%`);

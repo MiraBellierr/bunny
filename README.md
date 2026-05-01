@@ -47,6 +47,8 @@ npm i
 TOKEN=your-bot-token
 PREFIX=bot-prefix
 CHANNEL=channel-id-to-send-easter-egg
+# Optional: comma/space-separated Discord user IDs with owner-level access
+BOT_OWNER_IDS=123456789012345678,987654321098765432
 # Optional: chance between 0 and 1 (default: 0.03 for 3%)
 GOLDEN_EGG_CHANCE=0.03
 # Optional: claims needed per streak tier (default: 5, +1 bonus per tier)
@@ -61,6 +63,9 @@ DYNAMIC_RATE_TARGET_MESSAGES=30
 DYNAMIC_RATE_MIN_MULTIPLIER=0.5
 DYNAMIC_RATE_MAX_MULTIPLIER=2
 ```
+
+Notes:
+- `spawn`, `edit`, `rate`, and `reset` are restricted to bot owners (`BOT_OWNER_IDS`) or members with the Discord `Administrator` permission.
 
 4. Run the bot.
 

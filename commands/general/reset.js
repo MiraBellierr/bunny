@@ -15,14 +15,14 @@
  */
 
 const { Egg } = require("../../database/schemas/egg");
-const BOT_OWNER_ID = "548050617889980426";
+const { canManageBot } = require("../../utils/auth");
 const RESET_CONFIRM_WINDOW_MS = 30 * 1000;
 
 module.exports = {
 	name: "reset",
 	category: "general",
 	run: async (client, message, args = []) => {
-		if (message.author.id !== BOT_OWNER_ID) return;
+		if (!canManageBot(message)) return;
 
 		const now = Date.now();
 		const confirmArg = String(args[0] || "").toLowerCase();

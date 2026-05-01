@@ -16,11 +16,12 @@
 
 const logger = require("../../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
+const { canManageBot } = require("../../utils/auth");
 
 module.exports = {
 	name: "spawn",
 	run: async (client, message) => {
-		if (message.author.id !== "548050617889980426") return;
+		if (!canManageBot(message)) return;
 
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 

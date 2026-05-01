@@ -60,7 +60,7 @@ client.resetConfirmation = null;
 client.egg = {
 	id: "",
 	followupId: "",
-	rate: process.env.rate || 3,
+	rate: 3,
 	drop: "",
 	isGolden: false,
 	activityTimestamps: [],

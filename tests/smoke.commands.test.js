@@ -323,6 +323,7 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 
 test("reset smoke: requires confirmation before truncating database", async () => {
 	process.env.PREFIX = ".";
+	process.env.BOT_OWNER_IDS = "548050617889980426";
 	const channel = createChannel("chan-1");
 	let truncateCallCount = 0;
 	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
@@ -351,6 +352,7 @@ test("reset smoke: requires confirmation before truncating database", async () =
 
 test("reset smoke: confirm step truncates database when pending confirmation exists", async () => {
 	process.env.PREFIX = ".";
+	process.env.BOT_OWNER_IDS = "548050617889980426";
 	const channel = createChannel("chan-1");
 	let truncateCallCount = 0;
 	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
