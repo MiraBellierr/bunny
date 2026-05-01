@@ -18,6 +18,8 @@ require("dotenv").config();
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
 require("./database/sequelize");
+const { EggRuntimeState } = require("./database/schemas/eggRuntimeState");
+const { loadEggRuntimeState, saveEggRuntimeState } = require("./utils/eggRuntimeState");
 
 const requiredEnvVars = ["TOKEN", "PREFIX", "CHANNEL"];
 const missingEnvVars = requiredEnvVars.filter(
@@ -66,11 +68,21 @@ client.egg = {
 		count: 0,
 	},
 };
+client.persistEggRuntimeState = () => saveEggRuntimeState(client);
 
 ["command", "event"].forEach((handler) => {
 	require(`./handlers/${handler}`)(client);
 });
 
 require("./database/schemas/egg").Egg();
+EggRuntimeState();
 
-client.login(process.env.TOKEN);
+const bootstrap = async () => {
+	await loadEggRuntimeState(client);
+	await client.login(process.env.TOKEN);
+};
+
+bootstrap().catch((error) => {
+	console.error("[BOOT ERROR] Failed to start the bot.", error);
+	process.exit(1);
+});

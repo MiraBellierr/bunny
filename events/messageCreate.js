@@ -113,6 +113,7 @@ module.exports = async (client, message) => {
 				client.egg.followupId = msg2.id;
 				client.egg.id = msg.id;
 				client.egg.isGolden = isGolden;
+				await client.persistEggRuntimeState?.();
 				logger.info(
 					`Egg spawned | channel=${channel.id} eggMessage=${msg.id} golden=${isGolden}`
 				);

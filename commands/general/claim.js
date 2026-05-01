@@ -88,6 +88,7 @@ module.exports = {
 				client.egg.followupId = "";
 				client.egg.isGolden = false;
 			}
+			await client.persistEggRuntimeState?.();
 
 			const eggMessage = await message.channel.messages.fetch(claimedEggId).catch(() => null);
 			if (eggMessage) await eggMessage.delete().catch(() => null);

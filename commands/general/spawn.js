@@ -38,6 +38,7 @@ module.exports = {
 		client.egg.id = spawnEgg.id;
 		client.egg.followupId = msg2.id;
 		client.egg.isGolden = isGolden;
+		await client.persistEggRuntimeState?.();
 		logger.info(
 			`Egg manually spawned | user=${message.author.id} channel=${channel.id} eggMessage=${spawnEgg.id} golden=${isGolden}`
 		);

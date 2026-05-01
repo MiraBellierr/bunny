@@ -51,6 +51,17 @@ module.exports = {
 
 		client.resetConfirmation = null;
 		await Egg().truncate();
+		if (client.egg) {
+			client.egg.id = "";
+			client.egg.followupId = "";
+			client.egg.drop = "";
+			client.egg.isGolden = false;
+			client.egg.claimStreak = {
+				userId: "",
+				count: 0,
+			};
+			await client.persistEggRuntimeState?.();
+		}
 
 		message.channel.send("Database reset");
 	},
