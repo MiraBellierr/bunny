@@ -91,7 +91,7 @@ module.exports = async (client, message) => {
 				`Egg roll check | random=${random} baseRate=${client.egg.rate} effectiveRate=${effectiveRate} activity=${activityCount}`
 			);
 
-			if (before !== message.author.id && random <= effectiveRate) {
+			if (before !== message.author.id && random < effectiveRate) {
 				before = message.author.id;
 				const previousEgg = (await message.channel.messages.fetch(client.egg.id)) || null;
 
