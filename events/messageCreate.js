@@ -93,7 +93,12 @@ module.exports = async (client, message) => {
 
 			if (before !== message.author.id && random < effectiveRate) {
 				before = message.author.id;
-				const previousEgg = (await message.channel.messages.fetch(client.egg.id)) || null;
+				let previousEgg = null;
+				if (client.egg.id) {
+					previousEgg = await message.channel.messages
+						.fetch(client.egg.id)
+						.catch(() => null);
+				}
 
 				if (previousEgg) previousEgg.delete();
 
