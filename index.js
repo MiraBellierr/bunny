@@ -53,6 +53,7 @@ client.commands = new Collection();
 client.aliases = new Collection();
 client.categories = fs.readdirSync("./commands/");
 client.cooldown = null;
+client.resetConfirmation = null;
 client.egg = {
 	id: "",
 	followupId: "",

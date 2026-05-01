@@ -16,13 +16,40 @@
 
 const { Egg } = require("../../database/schemas/egg");
 const BOT_OWNER_ID = "548050617889980426";
+const RESET_CONFIRM_WINDOW_MS = 30 * 1000;
 
 module.exports = {
 	name: "reset",
 	category: "general",
-	run: async (client, message) => {
+	run: async (client, message, args = []) => {
 		if (message.author.id !== BOT_OWNER_ID) return;
 
+		const now = Date.now();
+		const confirmArg = String(args[0] || "").toLowerCase();
+		const hasValidPendingConfirmation =
+			client.resetConfirmation &&
+			client.resetConfirmation.requesterId === message.author.id &&
+			client.resetConfirmation.expiresAt > now;
+		const prefix = process.env.PREFIX || ".";
+
+		if (confirmArg !== "confirm") {
+			client.resetConfirmation = {
+				requesterId: message.author.id,
+				expiresAt: now + RESET_CONFIRM_WINDOW_MS,
+			};
+
+			return message.channel.send(
+				`This will permanently reset the egg database. Run \`${prefix}reset confirm\` within 30 seconds to continue.`
+			);
+		}
+
+		if (!hasValidPendingConfirmation) {
+			return message.channel.send(
+				`No pending reset request found. Run \`${prefix}reset\` first.`
+			);
+		}
+
+		client.resetConfirmation = null;
 		await Egg().truncate();
 
 		message.channel.send("Database reset");

@@ -5,8 +5,8 @@ const Module = require("node:module");
 
 const ROOT = path.resolve(__dirname, "..");
 const CLAIM_COMMAND_PATH = path.join(ROOT, "commands/general/claim.js");
-const DROP_COMMAND_PATH = path.join(ROOT, "commands/general/drop.js");
 const LB_COMMAND_PATH = path.join(ROOT, "commands/general/lb.js");
+const RESET_COMMAND_PATH = path.join(ROOT, "commands/general/reset.js");
 const { getEffectiveSpawnRate } = require("../utils/spawnRate");
 
 const FUNCTIONS_MODULE_PATH = require.resolve(path.join(ROOT, "utils/functions.js"));
@@ -321,87 +321,61 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 	assert.match(channel.sentPayloads[0].content, /`\+1` eggs/);
 });
 
-test("drop smoke: rejects dropping when user has zero eggs", async () => {
-	process.env.CHANNEL = "chan-1";
-	process.env.GOLDEN_EGG_CHANCE = "0";
+test("reset smoke: requires confirmation before truncating database", async () => {
+	process.env.PREFIX = ".";
 	const channel = createChannel("chan-1");
-	let updateCallCount = 0;
-
-	const dropCommand = loadModuleWithMocks(DROP_COMMAND_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({
-				get: () => 0,
-			}),
-		},
+	let truncateCallCount = 0;
+	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: () => ({
-				update: () => {
-					updateCallCount += 1;
+				truncate: async () => {
+					truncateCallCount += 1;
 				},
 			}),
 		},
 	});
 
-	const client = {
-		channels: { fetch: async () => channel },
-		egg: { id: "", followupId: "", drop: "" },
-	};
+	const client = {};
 	const message = {
-		author: { id: "user-1" },
-		member: "<@user-1>",
+		author: { id: "548050617889980426" },
 		channel,
 	};
 
-	await dropCommand.run(client, message);
+	await resetCommand.run(client, message, []);
 
-	assert.equal(updateCallCount, 0);
-	assert.deepEqual(channel.sentPayloads, ["You don't have any eggs :("]);
+	assert.equal(truncateCallCount, 0);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.match(channel.sentPayloads[0], /reset confirm/);
+	assert.equal(typeof client.resetConfirmation, "object");
 });
 
-test("drop smoke: successful drop updates points and creates egg state", async () => {
-	process.env.CHANNEL = "chan-1";
+test("reset smoke: confirm step truncates database when pending confirmation exists", async () => {
 	process.env.PREFIX = ".";
-	process.env.GOLDEN_EGG_CHANCE = "0";
 	const channel = createChannel("chan-1");
-	const updateCalls = [];
-
-	const dropCommand = loadModuleWithMocks(DROP_COMMAND_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({
-				get: () => 3,
-			}),
-		},
+	let truncateCallCount = 0;
+	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: () => ({
-				update: (...args) => {
-					updateCalls.push(args);
+				truncate: async () => {
+					truncateCallCount += 1;
 				},
 			}),
 		},
 	});
 
-	const client = {
-		channels: { fetch: async () => channel },
-		egg: { id: "", followupId: "", drop: "" },
-	};
+	const client = {};
 	const message = {
-		author: { id: "user-1" },
-		member: "<@user-1>",
+		author: { id: "548050617889980426" },
 		channel,
 	};
 
-	await dropCommand.run(client, message);
+	await resetCommand.run(client, message, []);
+	await resetCommand.run(client, message, ["confirm"]);
 
-	assert.equal(updateCalls.length, 1);
-	assert.deepEqual(updateCalls[0][0], { point: 2 });
-	assert.deepEqual(updateCalls[0][1], { where: { userid: "user-1" } });
-	assert.equal(channel.sentPayloads.length, 3);
-	assert.match(channel.sentPayloads[0], /dropped an egg/);
-	assert.equal(channel.sentPayloads[1], "🥚");
-	assert.match(channel.sentPayloads[2], /type `\.claim` to claim it!/);
-	assert.equal(client.egg.id, "m2");
-	assert.equal(client.egg.followupId, "m3");
-	assert.equal(client.egg.drop, "user-1");
+	assert.equal(truncateCallCount, 1);
+	assert.equal(client.resetConfirmation, null);
+	assert.equal(channel.sentPayloads.length, 2);
+	assert.equal(channel.sentPayloads[1], "Database reset");
 });
 
 test("lb smoke: sends leaderboard embed with current user marker", async () => {
