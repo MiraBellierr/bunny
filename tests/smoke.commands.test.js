@@ -87,7 +87,7 @@ test("claim smoke: successful claim increments points, clears egg state, and sen
 		[FUNCTIONS_MODULE_PATH]: {
 			getUserData: async () => ({ get: () => 0 }),
 		},
-		[EGG_SCHEMA_MODULE_PATH]: { Egg: () => model },
+		[EGG_SCHEMA_MODULE_PATH]: { Egg: model },
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
 	});
 
@@ -134,11 +134,11 @@ test("claim smoke: active lock blocks duplicate claim attempts", async () => {
 			getUserData: async () => ({ get: () => 0 }),
 		},
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				increment: async () => {
 					incrementCallCount += 1;
 				},
-			}),
+			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
 	});
@@ -193,11 +193,11 @@ test("claim smoke: streak tier adds bonus points", async () => {
 			getUserData: async () => ({ get: () => 0 }),
 		},
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				increment: async (...args) => {
 					incrementCalls.push(args);
 				},
-			}),
+			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
 	});
@@ -267,11 +267,11 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 			getUserData: async () => ({ get: () => 0 }),
 		},
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				increment: async (...args) => {
 					incrementCalls.push(args);
 				},
-			}),
+			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
 	});
@@ -327,11 +327,11 @@ test("reset smoke: requires confirmation before truncating database", async () =
 	let truncateCallCount = 0;
 	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				truncate: async () => {
 					truncateCallCount += 1;
 				},
-			}),
+			},
 		},
 	});
 
@@ -355,11 +355,11 @@ test("reset smoke: confirm step truncates database when pending confirmation exi
 	let truncateCallCount = 0;
 	const resetCommand = loadModuleWithMocks(RESET_COMMAND_PATH, {
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				truncate: async () => {
 					truncateCallCount += 1;
 				},
-			}),
+			},
 		},
 	});
 
@@ -385,7 +385,7 @@ test("lb smoke: sends leaderboard embed with current user marker", async () => {
 	let findOneCallCount = 0;
 	const lbCommand = loadModuleWithMocks(LB_COMMAND_PATH, {
 		[EGG_SCHEMA_MODULE_PATH]: {
-			Egg: () => ({
+			Egg: {
 				findAll: async () => [
 					{ dataValues: { userid: "user-1", point: 5 } },
 					{ dataValues: { userid: "user-2", point: 2 } },
@@ -394,7 +394,7 @@ test("lb smoke: sends leaderboard embed with current user marker", async () => {
 					findOneCallCount += 1;
 					return null;
 				},
-			}),
+			},
 		},
 	});
 

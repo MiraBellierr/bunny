@@ -50,7 +50,7 @@ module.exports = {
 		}
 
 		client.resetConfirmation = null;
-		await Egg().truncate();
+		await Egg.truncate();
 		if (client.egg) {
 			client.egg.id = "";
 			client.egg.followupId = "";

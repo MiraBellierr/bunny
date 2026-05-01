@@ -17,42 +17,36 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../sequelize");
 
-const EggRuntimeState = function () {
-	const eggRuntimeStateSchema = sequelize.define("EggRuntimeState", {
-		id: {
-			type: Sequelize.INTEGER,
-			primaryKey: true,
-			allowNull: false,
-		},
-		activeEggId: {
-			type: Sequelize.STRING,
-			defaultValue: "",
-		},
-		activeFollowupId: {
-			type: Sequelize.STRING,
-			defaultValue: "",
-		},
-		activeDropUserId: {
-			type: Sequelize.STRING,
-			defaultValue: "",
-		},
-		activeIsGolden: {
-			type: Sequelize.BOOLEAN,
-			defaultValue: false,
-		},
-		claimStreakUserId: {
-			type: Sequelize.STRING,
-			defaultValue: "",
-		},
-		claimStreakCount: {
-			type: Sequelize.INTEGER,
-			defaultValue: 0,
-		},
-	});
-
-	eggRuntimeStateSchema.sync();
-
-	return eggRuntimeStateSchema;
-};
+const EggRuntimeState = sequelize.define("EggRuntimeState", {
+	id: {
+		type: Sequelize.INTEGER,
+		primaryKey: true,
+		allowNull: false,
+	},
+	activeEggId: {
+		type: Sequelize.STRING,
+		defaultValue: "",
+	},
+	activeFollowupId: {
+		type: Sequelize.STRING,
+		defaultValue: "",
+	},
+	activeDropUserId: {
+		type: Sequelize.STRING,
+		defaultValue: "",
+	},
+	activeIsGolden: {
+		type: Sequelize.BOOLEAN,
+		defaultValue: false,
+	},
+	claimStreakUserId: {
+		type: Sequelize.STRING,
+		defaultValue: "",
+	},
+	claimStreakCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
+});
 
 module.exports = { EggRuntimeState };

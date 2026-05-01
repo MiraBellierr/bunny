@@ -56,7 +56,7 @@ module.exports = {
 		};
 
 		try {
-			await functions.getUserData(Egg(), message.author);
+			await functions.getUserData(Egg, message.author);
 			const currentStreak = client.egg.claimStreak || { userId: "", count: 0 };
 			const shouldTrackStreak = !claimedIsDroppedEgg;
 			const nextStreakCount = shouldTrackStreak
@@ -71,7 +71,7 @@ module.exports = {
 			const claimedEggs = claimedIsDroppedEgg ? 1 : rollClaimedEggs(claimedIsGolden);
 			const totalClaimedEggs = claimedEggs + streakBonus;
 
-			await Egg().increment(
+			await Egg.increment(
 				{ point: totalClaimedEggs },
 				{ where: { userid: message.author.id } }
 			);

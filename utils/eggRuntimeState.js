@@ -35,7 +35,7 @@ const applyStateToClient = (client, persistedState) => {
 
 const saveEggRuntimeState = async (client) => {
 	try {
-		await EggRuntimeState().upsert(buildStatePayload(client.egg));
+		await EggRuntimeState.upsert(buildStatePayload(client.egg));
 	} catch (error) {
 		logger.error("Failed to persist egg runtime state", error);
 	}
@@ -43,7 +43,7 @@ const saveEggRuntimeState = async (client) => {
 
 const loadEggRuntimeState = async (client) => {
 	try {
-		const [persistedState] = await EggRuntimeState().findOrCreate({
+		const [persistedState] = await EggRuntimeState.findOrCreate({
 			where: { id: RUNTIME_STATE_ID },
 			defaults: buildStatePayload(client.egg),
 		});

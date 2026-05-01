@@ -27,7 +27,7 @@ module.exports = {
 		const target = await getUserFromArguments(message, args[0]);
 		if (!target) return message.channel.send("User not found.");
 
-		const targetEggs = await getUserData(Egg(), target);
+		const targetEggs = await getUserData(Egg, target);
 
 		const eggPoint = targetEggs.get("point");
 
@@ -36,9 +36,9 @@ module.exports = {
 		const amount = parseInt(args[2]);
 
 		if (args[1] === "add") {
-			Egg().update({ point: eggPoint + amount }, { where: { userid: target.id } });
+			Egg.update({ point: eggPoint + amount }, { where: { userid: target.id } });
 		} else if (args[1] === "minus") {
-			Egg().update({ point: eggPoint - amount }, { where: { userid: target.id } });
+			Egg.update({ point: eggPoint - amount }, { where: { userid: target.id } });
 		}
 
 		message.channel.send(`Successfully ${args[1]} ${amount} eggs to ${target.username}.`);

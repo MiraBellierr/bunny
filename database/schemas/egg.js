@@ -17,22 +17,16 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../sequelize");
 
-const Egg = function () {
-	const eggSchema = sequelize.define("Egg", {
-		userid: {
-			type: Sequelize.STRING,
-			unique: true,
-			allowNull: false,
-		},
-		point: {
-			type: Sequelize.INTEGER,
-			defaultValue: 0,
-		},
-	});
-
-	eggSchema.sync();
-
-	return eggSchema;
-};
+const Egg = sequelize.define("Egg", {
+	userid: {
+		type: Sequelize.STRING,
+		unique: true,
+		allowNull: false,
+	},
+	point: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
+});
 
 module.exports = { Egg };

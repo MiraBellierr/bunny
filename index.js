@@ -17,8 +17,9 @@
 require("dotenv").config();
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const fs = require("fs");
-require("./database/sequelize");
-const { EggRuntimeState } = require("./database/schemas/eggRuntimeState");
+const sequelize = require("./database/sequelize");
+require("./database/schemas/egg");
+require("./database/schemas/eggRuntimeState");
 const { loadEggRuntimeState, saveEggRuntimeState } = require("./utils/eggRuntimeState");
 
 const requiredEnvVars = ["TOKEN", "PREFIX", "CHANNEL"];
@@ -74,10 +75,8 @@ client.persistEggRuntimeState = () => saveEggRuntimeState(client);
 	require(`./handlers/${handler}`)(client);
 });
 
-require("./database/schemas/egg").Egg();
-EggRuntimeState();
-
 const bootstrap = async () => {
+	await sequelize.sync();
 	await loadEggRuntimeState(client);
 	await client.login(process.env.TOKEN);
 };

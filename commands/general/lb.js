@@ -21,7 +21,7 @@ module.exports = {
 	name: "lb",
 	category: "general",
 	run: async (client, message) => {
-		const findAllUser = await Egg().findAll({
+		const findAllUser = await Egg.findAll({
 			order: [["point", "DESC"]],
 		});
 
@@ -49,7 +49,7 @@ module.exports = {
 		}
 
 		if (userIndex === -1) {
-			const userEgg = await Egg().findOne({
+			const userEgg = await Egg.findOne({
 				where: {
 					userid: message.author.id,
 				},
