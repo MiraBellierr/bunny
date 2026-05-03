@@ -47,6 +47,51 @@ Who is Paul Simon?|A singer-songwrite|A famous lawyer|A playwright|A serial kill
 Which of these is NOT caused by a virus?|Cholera|Herpes|Measles|Smallpox
 What do Alvin the Chipmunk and Hester Prynne have in common?|They both have the letter "A" on their clothes|They both have very high voices|They were both born in Sweden|They were both created by Nathaniel Hawthorne
 Which of the following is a synonym of "benighted"?|Ignorant|Noble|Old|Smitten
+How old was Juliet in "Romeo and Juliet"?|13|21|31|45
+What is Limburger cheese known for?|Its pungent smell|Its bright color|Its high price|Being the main ingredient in pizza
+What kind of battery is used to power modern laptop computers?|Lithium-ion|Lead-acid|Nickel_cadmium|Alkaline
+Which of these was a character in "Oliver Twist"?|The Artful Dodger|Mr. Darcy|Tom Sawyer|Tiny Tim
+What did people call the Western films directed by Sergio Leone and other Italian directors?|Spaghetti westerns|Espresso westerns|Gucci westerns|Pasta westerns
+What does it mean when a movie is called a "blockbuster"?|It sold a lot of tickets|It failed miserably|It was a movie about World War II|It was a movie that featured a lot of explosions
+What happened to the witch in "Hansel and Gretel"?|Gretel pushed her into an over|She ate Hansel and then flew away on her broomstick|She disappeared into the deep, dark woods|She transformed into a rat
+Which of these is NOT a type of architecture?|Dadaist|Art Deco|Brutalist|Gothic
+What is the key ingredient in a Molotov cocktail?|Gasoline|Milk|Nitroglycerin|Vodka
+What percentage of the passengers on the Titanic died in the disaster?|62%|0%|4%|99.9%
+What was the name of Dorothy's aunt in "The Wizard of Oz"?|Aunt Em|Aunt Bee|Aunt Gertrude|Aunt Rose
+Which of these musical instruments is most similar to a fife?|Flute|Violin|Trumpet|Harmonica
+What tribe did Goliath belong to?|Philistines|Israelites|Canaanites|Babylonians
+Which of these is NOT a sign of the Zodiac?|Orion|Aquarius|Leo|Taurus
+If you "decimate" something, what percentage of it do you destroy?|10%|90%|100%|50%
+In recent years, Nick Saban has been the highest-paid public employee in the United States. What is his profession?|Football coach|Army general|Customs inspector|Surgeon
+In the first chapter of Genesis, what did God tell people to do?|Multiply|Add|Divide|subtract
+What is a farthing?|An old British coin|A creature from "The Lord of the Rings"|A unit of land equal to 7 hectares|A gas
+Which of these adjectives best describes the Greek hero Odysseus?|Clever|Fat|Greedy|Tall
+Which of these is the title of a book written by Machiavelli?|The Prince|The Duke|The King|The Queen
+In the opera "Pagliacci", who is Pagliacci?|Clown|Cook|Ghost|Violinist
+Which adjective best describes a person with a Type-A personality?|Competitive|Funny|Insincere|Relaxed
+Which word doesn't have a similar meaning to the other ones?|Misanthropy|Audacity|Chutzpah|Hubris
+When does the Jewish sabbath begin?|Friday, sunset|Saturday, sunrise|Sunday, midnight|Monday, noon
+What is the national animal of Canada?|Beaver|Blue Jay|Moose|Polar Bear
+Who is the leader of the Teenage Mutant Ninja Turtles?|Leonardo|Donatello|Michelangelo|Raphael
+Who did French president Emmanuel Macron marry?|His high school teacher|A bodybuilder|A former nun|His cousin
+What object did the boys in "The Lord of the Flies" use to decide who was the current speaker?|A conch shell|A bible|A cricket bat|A monkey's paw
+What color of ink is used to indicate a financial loss?|Red|Black|Blue|Green
+What's the brightest object in the night sky, other than the moon?|Venus|Mars|Jupiter|Sirius
+What is a gremlin?|A creature which tampers with machinery|A clay monster|A graverobber|A small bearded creature which lives underground
+Which of these is NOT a Nordic country?|Netherlands|Denmark|Norway|Sweden
+Who owns the North Pole?|No one|Canada|Russia|United Kingdom
+Have humans ever measured a 10.0 earthquake?|No|Yes, in California|Maybe|Yes, in Chile
+Which of these is NOT a type of boat?|Dungaree|Catamaran|Galleon|Junk
+Which of these periods of time is the longest?|Millisecond|Microsecond|Nanosecond|Cocosecond
+What is a "grand jeté"?|A ballet jump where the dancer does splits in the air|A geyser|A very large hot air balloon or blimp|A type of French pastry
+Which of these years was NOT a leap year in the Gregorian calendar?|1900|1916|1944|2000
+What does the 47 mean in AK-47?|It was invented in 1947|It uses .47 caliber bullets|It was the 47th version of the Kalashnikov rifle|It has a 47-round magazine
+What was Quasimodo's job in "The Hunchback of Notre-Dame"?|Bell-ringer|Janitor|Grave digger|Blacksmith
+What is James Bond's fake profession for when he needs a cover story?|Import export|Film director|Novelist|Race car driver
+What is a shibboleth?|A word that only people in a certain group can pronounce correctly|A clay monster that protects Jewish people in Prague|An ornamental shoehorn|It's completely made up
+Which of these words means "complicated"?|Byzantine|Frank|Germane|Ottoman
+What is Nostradamus known for?|His predictions|His height|His inventions|His poems
+How many people have walked on the moon?|12|1|2|0
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
