@@ -406,7 +406,7 @@ test("interaction smoke: correct quiz answer awards eggs and clears active egg s
 	const channel = createChannel("chan-1");
 	let incrementPayload = null;
 	let persisted = false;
-	let quizMessageDeleted = false;
+	let quizButtonsRemoved = false;
 	let deferUpdateCount = 0;
 	const eggDeleteState = { deleted: false };
 	const followupDeleteState = { deleted: false };
@@ -476,8 +476,9 @@ test("interaction smoke: correct quiz answer awards eggs and clears active egg s
 		user: { id: "user-1" },
 		channel,
 		message: {
-			delete: async () => {
-				quizMessageDeleted = true;
+			edit: async (payload) => {
+				quizButtonsRemoved =
+					Array.isArray(payload?.components) && payload.components.length === 0;
 			},
 		},
 		deferUpdate: async () => {
@@ -497,7 +498,7 @@ test("interaction smoke: correct quiz answer awards eggs and clears active egg s
 	assert.equal(client.egg.followupId, "");
 	assert.equal(client.egg.pendingQuiz, null);
 	assert.equal(client.egg.claimLock, null);
-	assert.equal(quizMessageDeleted, true);
+	assert.equal(quizButtonsRemoved, true);
 	assert.equal(eggDeleteState.deleted, true);
 	assert.equal(followupDeleteState.deleted, true);
 	assert.equal(persisted, true);
@@ -569,7 +570,7 @@ test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", 
 		user: { id: "user-1" },
 		channel,
 		message: {
-			delete: async () => {},
+			edit: async () => {},
 		},
 		deferUpdate: async () => {},
 		reply: async () => {},

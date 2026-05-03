@@ -72,7 +72,7 @@ module.exports = async (client, interaction) => {
 		);
 	}
 
-	await interaction.message.delete().catch(() => null);
+	await interaction.message.edit({ components: [] }).catch(() => null);
 	await cleanupEggMessages(interaction.channel, pendingQuiz.eggId, pendingQuiz.followupId);
 	await clearActiveEggState(client, pendingQuiz.eggId);
 
