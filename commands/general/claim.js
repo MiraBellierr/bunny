@@ -17,18 +17,24 @@
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 const logger = require("../../utils/logger");
-const { rollClaimedEggs } = require("../../utils/egg");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
+const {
+	TOP_QUIZ_RANK_LIMIT,
+	CLAIM_QUIZ_TIMEOUT_MS,
+	QUIZ_BUTTON_LABELS,
+	calculateClaimRewardContext,
+	isUserInTopRanks,
+	pickRandomQuizQuestion,
+	formatQuizPrompt,
+	createQuizToken,
+	buildQuizButtonCustomId,
+	clearPendingQuizTimer,
+	clearActiveEggState,
+	cleanupEggMessages,
+	resolvePendingQuizAsIncorrect,
+} = require("../../utils/claimQuiz");
+
 const CLAIM_LOCK_MS = 10 * 1000;
-const DEFAULT_STREAK_TIER_SIZE = 5;
-
-const getClaimStreakTierSize = () => {
-	const parsedTierSize = Number.parseInt(process.env.CLAIM_STREAK_TIER_SIZE || "", 10);
-	if (Number.isNaN(parsedTierSize) || parsedTierSize < 1) {
-		return DEFAULT_STREAK_TIER_SIZE;
-	}
-
-	return parsedTierSize;
-};
 
 module.exports = {
 	name: "claim",
@@ -38,6 +44,10 @@ module.exports = {
 
 		if (message.author.id === client.egg.drop) return;
 		if (message.channel.id !== channel.id) return;
+		if (!client.egg.id) return;
+		if (client.egg.pendingQuiz && Date.now() > client.egg.pendingQuiz.expiresAt) {
+			await resolvePendingQuizAsIncorrect(client, "timeout");
+		}
 		if (!client.egg.id) return;
 
 		const activeLock = client.egg.claimLock;
@@ -49,6 +59,8 @@ module.exports = {
 		const claimedFollowupId = client.egg.followupId;
 		const claimedIsDroppedEgg = Boolean(client.egg.drop);
 		const claimedIsGolden = !claimedIsDroppedEgg && Boolean(client.egg.isGolden);
+		let shouldReleaseLock = true;
+
 		client.egg.claimLock = {
 			token: lockToken,
 			eggId: claimedEggId,
@@ -57,65 +69,105 @@ module.exports = {
 
 		try {
 			await functions.getUserData(Egg, message.author);
-			const currentStreak = client.egg.claimStreak || { userId: "", count: 0 };
-			const shouldTrackStreak = !claimedIsDroppedEgg;
-			const nextStreakCount = shouldTrackStreak
-				? currentStreak.userId === message.author.id
-					? currentStreak.count + 1
-					: 1
-				: currentStreak.count;
-			const streakTierSize = getClaimStreakTierSize();
-			const streakBonus = shouldTrackStreak
-				? Math.floor(nextStreakCount / streakTierSize)
-				: 0;
-			const claimedEggs = claimedIsDroppedEgg ? 1 : rollClaimedEggs(claimedIsGolden);
-			const totalClaimedEggs = claimedEggs + streakBonus;
+			const rewardContext = calculateClaimRewardContext({
+				client,
+				userId: message.author.id,
+				claimedIsDroppedEgg,
+				claimedIsGolden,
+			});
+			const requiresQuiz = await isUserInTopRanks(message.author.id, TOP_QUIZ_RANK_LIMIT);
+
+			if (requiresQuiz) {
+				const quizQuestion = pickRandomQuizQuestion();
+				const quizToken = createQuizToken();
+				const quizExpiresAt = Date.now() + CLAIM_QUIZ_TIMEOUT_MS;
+				const quizEmbed = new EmbedBuilder()
+					.setTitle("Top 2 Quiz Challenge")
+					.setDescription(formatQuizPrompt(quizQuestion))
+					.setFooter({
+						text: `Answer within ${Math.floor(CLAIM_QUIZ_TIMEOUT_MS / 1000)} seconds`,
+					});
+				const buttonRow = new ActionRowBuilder().addComponents(
+					QUIZ_BUTTON_LABELS.map((label, index) =>
+						new ButtonBuilder()
+							.setCustomId(buildQuizButtonCustomId(quizToken, index))
+							.setLabel(label)
+							.setStyle(ButtonStyle.Primary)
+					)
+				);
+				const quizMessage = await message.channel.send({
+					content: `${message.member}, answer correctly to claim this egg.`,
+					embeds: [quizEmbed],
+					components: [buttonRow],
+					allowedMentions: { repliedUser: false, users: [] },
+				});
+				client.egg.pendingQuiz = {
+					token: quizToken,
+					userId: message.author.id,
+					channelId: message.channel.id,
+					quizMessageId: quizMessage.id,
+					eggId: claimedEggId,
+					followupId: claimedFollowupId,
+					claimedIsGolden,
+					totalClaimedEggs: rewardContext.totalClaimedEggs,
+					streakBonus: rewardContext.streakBonus,
+					nextStreakCount: rewardContext.nextStreakCount,
+					shouldTrackStreak: rewardContext.shouldTrackStreak,
+					correctIndex: quizQuestion.correctIndex,
+					expiresAt: quizExpiresAt,
+					lockToken,
+				};
+				clearPendingQuizTimer(client);
+				client.egg.pendingQuizTimer = setTimeout(() => {
+					resolvePendingQuizAsIncorrect(client, "timeout").catch((error) => {
+						logger.error("Failed to resolve timed-out claim quiz", error);
+					});
+				}, CLAIM_QUIZ_TIMEOUT_MS);
+				client.egg.claimLock.expiresAt = quizExpiresAt;
+				shouldReleaseLock = false;
+
+				logger.info(
+					`Egg claim gated by quiz | user=${message.author.id} eggMessage=${claimedEggId} quizMessage=${quizMessage.id} reward=${rewardContext.totalClaimedEggs}`
+				);
+				return;
+			}
 
 			await Egg.increment(
-				{ point: totalClaimedEggs },
+				{ point: rewardContext.totalClaimedEggs },
 				{ where: { userid: message.author.id } }
 			);
-			if (shouldTrackStreak) {
+			if (rewardContext.shouldTrackStreak) {
 				client.egg.claimStreak = {
 					userId: message.author.id,
-					count: nextStreakCount,
+					count: rewardContext.nextStreakCount,
 				};
 			}
 
-			if (client.egg.id === claimedEggId) {
-				client.egg.id = "";
-				client.egg.drop = "";
-				client.egg.followupId = "";
-				client.egg.isGolden = false;
-			}
-			await client.persistEggRuntimeState?.();
-
-			const eggMessage = await message.channel.messages.fetch(claimedEggId).catch(() => null);
-			if (eggMessage) await eggMessage.delete().catch(() => null);
-
-			const followupMessage = await message.channel.messages
-				.fetch(claimedFollowupId)
-				.catch(() => null);
-			if (followupMessage) await followupMessage.delete().catch(() => null);
+			await clearActiveEggState(client, claimedEggId);
+			await cleanupEggMessages(message.channel, claimedEggId, claimedFollowupId);
 
 			await message.channel.send({
 				content: claimedIsGolden
-					? `${message.member} has claimed a GOLDEN egg! ✨ \`+${totalClaimedEggs}\` eggs`
-					: `${message.member} has claimed the egg! \`+${totalClaimedEggs}\` eggs`,
+					? `${message.member} has claimed a GOLDEN egg! ✨ \`+${rewardContext.totalClaimedEggs}\` eggs`
+					: `${message.member} has claimed the egg! \`+${rewardContext.totalClaimedEggs}\` eggs`,
 				allowedMentions: { repliedUser: false, users: [] },
 			});
 
-			if (streakBonus > 0) {
+			if (rewardContext.streakBonus > 0) {
 				await message.channel.send(
-					`Streak bonus: \`+${streakBonus}\` (streak ${nextStreakCount})`
+					`Streak bonus: \`+${rewardContext.streakBonus}\` (streak ${rewardContext.nextStreakCount})`
 				);
 			}
 
 			logger.info(
-				`Egg claimed | user=${message.author.id} reward=${totalClaimedEggs} baseReward=${claimedEggs} streakBonus=${streakBonus} streakCount=${nextStreakCount} eggMessage=${claimedEggId} golden=${claimedIsGolden} dropped=${claimedIsDroppedEgg}`
+				`Egg claimed | user=${message.author.id} reward=${rewardContext.totalClaimedEggs} baseReward=${rewardContext.claimedEggs} streakBonus=${rewardContext.streakBonus} streakCount=${rewardContext.nextStreakCount} eggMessage=${claimedEggId} golden=${claimedIsGolden} dropped=${claimedIsDroppedEgg}`
 			);
 		} finally {
-			if (client.egg.claimLock && client.egg.claimLock.token === lockToken) {
+			if (
+				shouldReleaseLock &&
+				client.egg.claimLock &&
+				client.egg.claimLock.token === lockToken
+			) {
 				client.egg.claimLock = null;
 			}
 		}

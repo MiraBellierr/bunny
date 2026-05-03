@@ -33,9 +33,14 @@ module.exports = {
 		const isGolden = rollGoldenEgg();
 		const spawnEgg = await channel.send(getEggMessage(isGolden));
 		const msg2 = await channel.send(
-			`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`
+			`-# type \`${process.env.PREFIX}claim\` to claim it! Top 2 leaderboard players must answer a quiz question first.`
 		);
 
+		if (client.egg.pendingQuizTimer) {
+			clearTimeout(client.egg.pendingQuizTimer);
+			client.egg.pendingQuizTimer = null;
+		}
+		client.egg.pendingQuiz = null;
 		client.egg.id = spawnEgg.id;
 		client.egg.followupId = msg2.id;
 		client.egg.isGolden = isGolden;

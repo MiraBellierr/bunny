@@ -68,6 +68,8 @@ client.egg = {
 		userId: "",
 		count: 0,
 	},
+	pendingQuiz: null,
+	pendingQuizTimer: null,
 };
 client.persistEggRuntimeState = () => saveEggRuntimeState(client);
 

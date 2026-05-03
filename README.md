@@ -13,6 +13,7 @@ Current version: `v1.1.1`
 - Tracks a leaderboard with `<prefix>lb`.
 - Occasionally spawns a golden egg for bigger rewards.
 - Supports streak bonus rewards for repeat claimers.
+- Requires top 2 leaderboard players to answer a quiz button question before claim resolution.
 - Persists active egg + streak runtime state across restarts.
 - Includes admin/owner controls for manual spawn, rate changes, edits, and reset.
 
@@ -22,7 +23,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 
 | Command | Access | What it does |
 | --- | --- | --- |
-| `<prefix>claim` | Everyone | Claims the active egg in the configured channel. |
+| `<prefix>claim` | Everyone | Claims the active egg; current #1 and #2 players must pass a quiz question first. |
 | `<prefix>lb` | Everyone | Shows the egg leaderboard (top 10, plus your rank highlight when present). |
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
@@ -41,6 +42,9 @@ Bot manager means either:
 - Normal egg claim reward: random `1-10` eggs.
 - Golden egg claim reward: random `11-20` eggs.
 - Streak bonus: `+floor(streakCount / CLAIM_STREAK_TIER_SIZE)`.
+- Top 2 leaderboard gating: multiple-choice quiz (100+ local question bank) before reward.
+- Quiz timeout for top-2 claims: `10` seconds. No answer in time counts as incorrect.
+- Wrong top-2 answer penalty: deduct the same amount as that claim reward, clamped at `0` total eggs.
 - Default streak tier size: `5`.
 - Claim lock: duplicate claims are throttled for `10` seconds per active egg to avoid race spam.
 

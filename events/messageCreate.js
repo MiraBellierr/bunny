@@ -105,7 +105,7 @@ module.exports = async (client, message) => {
 				const isGolden = rollGoldenEgg();
 				const msg = await channel.send(getEggMessage(isGolden));
 				const msg2 = await channel.send(
-					`-# type \`${process.env.PREFIX}claim\` to claim it! Person who gets the most eggs will get a mystery gift!`
+					`-# type \`${process.env.PREFIX}claim\` to claim it! Top 2 leaderboard players must answer a quiz question first.`
 				);
 
 				client.cooldown = Date.now();
@@ -113,6 +113,11 @@ module.exports = async (client, message) => {
 				client.egg.followupId = msg2.id;
 				client.egg.id = msg.id;
 				client.egg.isGolden = isGolden;
+				if (client.egg.pendingQuizTimer) {
+					clearTimeout(client.egg.pendingQuizTimer);
+					client.egg.pendingQuizTimer = null;
+				}
+				client.egg.pendingQuiz = null;
 				await client.persistEggRuntimeState?.();
 				logger.info(
 					`Egg spawned | channel=${channel.id} eggMessage=${msg.id} golden=${isGolden}`
