@@ -33,7 +33,7 @@ module.exports = {
 		const isGolden = rollGoldenEgg();
 		const spawnEgg = await channel.send(getEggMessage(isGolden));
 		const msg2 = await channel.send(
-			`-# type \`${process.env.PREFIX}claim\` to claim it! Top 2 leaderboard players must answer a quiz question first.`
+			`-# type \`${process.env.PREFIX}claim\` to claim it! Beep booop!!!`
 		);
 
 		if (client.egg.pendingQuizTimer) {

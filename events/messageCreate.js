@@ -105,7 +105,7 @@ module.exports = async (client, message) => {
 				const isGolden = rollGoldenEgg();
 				const msg = await channel.send(getEggMessage(isGolden));
 				const msg2 = await channel.send(
-					`-# type \`${process.env.PREFIX}claim\` to claim it! Top 2 leaderboard players must answer a quiz question first.`
+					`-# type \`${process.env.PREFIX}claim\` to claim it! Person below is cute.`
 				);
 
 				client.cooldown = Date.now();

@@ -15,6 +15,7 @@ What is a pomelo?|The largest citrus fruit|A breed of dog|An old-fashioned punch
 Who killed Greedo?|Han Solo|Hannibal Lecter|Hermione Granger|Hercules
 Are giant pandas a type of bear?|Yes|No|Only on Tuesdays|Only in the summer
 How many points is the letter X worth in English-language Scrabble?|8|None|11|5
+Are women required by law to wear headscarves in Iran?|Yes|No|Only in rural areas|Only during the month of Ramadan
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
