@@ -1,8 +1,8 @@
 # Bunny
 
-A Discord egg-hunt bot with tiny chaos energy.
+A Discord egg-hunt bot for server events and community games.
 
-Members chat, eggs appear, people race to claim them, and the leaderboard slowly ruins friendships in a very wholesome way.
+Members chat, eggs appear, players claim them for points, and the leaderboard tracks event rankings.
 
 Current version: `v1.1.1`
 
@@ -36,7 +36,7 @@ Bot manager means either:
 - a user ID listed in `BOT_OWNER_IDS`, or
 - a member with Discord `Administrator` permission.
 
-## Reward Rules (aka Egg Economics)
+## Reward Rules
 
 - Normal egg claim reward: random `1-10` eggs.
 - Golden egg claim reward: random `11-20` eggs.
@@ -44,7 +44,7 @@ Bot manager means either:
 - Default streak tier size: `5`.
 - Claim lock: duplicate claims are throttled for `10` seconds per active egg to avoid race spam.
 
-## Spawn Rules (aka Bunny Weather Forecast)
+## Spawn Rules
 
 - Base spawn rate starts at `3%` (`client.egg.rate = 3`).
 - Spawn checks happen from activity in the configured `CHANNEL`.
@@ -171,7 +171,3 @@ git push --tags
 ## License
 
 Apache-2.0. See `LICENSE`.
-
----
-
-If this bot starts drama in your server because someone lost first place by 1 egg, Bunny accepts no emotional liability.
