@@ -4,7 +4,7 @@ const { GENERAL_KNOWLEDGE_QUESTION_BANK } = require("./quizQuestionBank");
 
 const DEFAULT_STREAK_TIER_SIZE = 5;
 const TOP_QUIZ_RANK_LIMIT = 2;
-const CLAIM_QUIZ_TIMEOUT_MS = 10 * 1000;
+const CLAIM_QUIZ_TIMEOUT_MS = 15 * 1000;
 const CLAIM_QUIZ_BUTTON_PREFIX = "claimquiz";
 const QUIZ_BUTTON_LABELS = ["A", "B", "C", "D"];
 
