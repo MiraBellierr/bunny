@@ -29,7 +29,9 @@ module.exports = {
 					`• 284 Diamonds (Mobile Legends: Bang Bang)\n` +
 					`• Express Supply Pass (Honkai: Star Rail)\n` +
 					`• Inter-Knot Membership (Zenless Zone Zero)\n` +
-					`• Monthly Pass (Arknights: Endfield)\n\n` +
+					`• $10 USD Steam Gift Card\n` +
+					`• $10 Discord Nitro\n` +
+					`• Discord Profile Decoration\n\n` +
 					`The winner will be announced at the end of the egg hunt event!`
 			)
 			.setColor("#FFD700");
