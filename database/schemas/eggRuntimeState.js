@@ -47,6 +47,18 @@ const EggRuntimeState = sequelize.define("EggRuntimeState", {
 		type: Sequelize.INTEGER,
 		defaultValue: 0,
 	},
+	trackedMessageCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
+	spawnedEggCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
+	spawnedGoldenEggCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+	},
 });
 
 module.exports = { EggRuntimeState };

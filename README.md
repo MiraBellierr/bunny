@@ -15,6 +15,7 @@ Current version: `v1.1.1`
 - Supports streak bonus rewards for repeat claimers.
 - Requires top 2 leaderboard players to answer a quiz button question before claim resolution.
 - Persists active egg + streak runtime state across restarts.
+- Includes `stats` tracking for messages, egg spawns, and golden spawn ratio.
 - Includes admin/owner controls for manual spawn, rate/tuning changes, edits, and reset.
 
 ## Command List
@@ -25,6 +26,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 | --- | --- | --- |
 | `<prefix>claim` | Everyone | Claims the active egg; current #1 and #2 players must pass a quiz question first. |
 | `<prefix>lb` | Everyone | Shows the egg leaderboard (top 10, plus your rank highlight when present). |
+| `<prefix>stats` | Everyone | Shows tracked message count, egg spawns, and golden spawn ratios. |
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
 | `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent. |
@@ -144,7 +146,8 @@ npm run format:check
 - Runtime state persistence stores:
   - active egg message IDs,
   - active golden/drop state,
-  - current claim streak holder + count.
+  - current claim streak holder + count,
+  - tracked message/spawn counters for `<prefix>stats`.
 
 ## Troubleshooting
 

@@ -11,6 +11,7 @@ const LB_COMMAND_PATH = path.join(ROOT, "commands/general/lb.js");
 const RATE_COMMAND_PATH = path.join(ROOT, "commands/general/rate.js");
 const RESET_COMMAND_PATH = path.join(ROOT, "commands/general/reset.js");
 const SPAWN_COMMAND_PATH = path.join(ROOT, "commands/general/spawn.js");
+const STATS_COMMAND_PATH = path.join(ROOT, "commands/general/stats.js");
 const INTERACTION_EVENT_PATH = path.join(ROOT, "events/interactionCreate.js");
 const AUTH_UTIL_PATH = path.join(ROOT, "utils/auth.js");
 const EGG_RUNTIME_STATE_UTIL_PATH = path.join(ROOT, "utils/eggRuntimeState.js");
@@ -1113,6 +1114,9 @@ test("runtime state smoke: load restores active egg and streak from persistence"
 		activeIsGolden: true,
 		claimStreakUserId: "streak-user-1",
 		claimStreakCount: 8,
+		trackedMessageCount: 1200,
+		spawnedEggCount: 45,
+		spawnedGoldenEggCount: 4,
 	};
 	const { loadEggRuntimeState } = loadModuleWithMocks(EGG_RUNTIME_STATE_UTIL_PATH, {
 		[EGG_RUNTIME_STATE_SCHEMA_MODULE_PATH]: {
@@ -1139,6 +1143,11 @@ test("runtime state smoke: load restores active egg and streak from persistence"
 				userId: "",
 				count: 0,
 			},
+			stats: {
+				trackedMessageCount: 0,
+				spawnedEggCount: 0,
+				spawnedGoldenEggCount: 0,
+			},
 		},
 	};
 
@@ -1151,6 +1160,9 @@ test("runtime state smoke: load restores active egg and streak from persistence"
 	assert.equal(client.egg.isGolden, true);
 	assert.equal(client.egg.claimStreak.userId, "streak-user-1");
 	assert.equal(client.egg.claimStreak.count, 8);
+	assert.equal(client.egg.stats.trackedMessageCount, 1200);
+	assert.equal(client.egg.stats.spawnedEggCount, 45);
+	assert.equal(client.egg.stats.spawnedGoldenEggCount, 4);
 });
 
 test("runtime state smoke: save sanitizes payload before persistence", async () => {
@@ -1175,6 +1187,11 @@ test("runtime state smoke: save sanitizes payload before persistence", async () 
 				userId: 789,
 				count: -3,
 			},
+			stats: {
+				trackedMessageCount: "27",
+				spawnedEggCount: -1,
+				spawnedGoldenEggCount: "oops",
+			},
 		},
 	};
 
@@ -1188,6 +1205,9 @@ test("runtime state smoke: save sanitizes payload before persistence", async () 
 		activeIsGolden: true,
 		claimStreakUserId: "",
 		claimStreakCount: 0,
+		trackedMessageCount: 27,
+		spawnedEggCount: 0,
+		spawnedGoldenEggCount: 0,
 	});
 });
 
@@ -1231,6 +1251,65 @@ test("lb smoke: sends leaderboard embed with current user marker", async () => {
 	assert.equal(Array.isArray(channel.sentPayloads[0].embeds), true);
 	assert.equal(channel.sentPayloads[0].embeds.length, 1);
 	assert.match(channel.sentPayloads[0].embeds[0].data.description, /---> \*\*\[1\]\*\* - <@user-1>/);
+});
+
+test("stats smoke: reports message, egg, and golden ratios", async () => {
+	const channel = createChannel("chan-1");
+	const statsCommand = loadModuleWithMocks(STATS_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			stats: {
+				trackedMessageCount: 250,
+				spawnedEggCount: 10,
+				spawnedGoldenEggCount: 2,
+			},
+		},
+	};
+	const message = { channel };
+
+	await statsCommand.run(client, message);
+
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(Array.isArray(channel.sentPayloads[0].embeds), true);
+	assert.equal(channel.sentPayloads[0].embeds.length, 1);
+	assert.equal(channel.sentPayloads[0].embeds[0].data.title, "📊 Bunny Spawn Stats");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.description, "Tracked from the configured spawn channel.");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[0].name, "💬 Messages Tracked");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[0].value, "250");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[1].name, "🥚 Eggs Spawned");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[1].value, "10");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[2].name, "📈 Spawn Percentage");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[2].value, "4% (10/250)");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[3].name, "✨ Golden Eggs Spawned");
+	assert.equal(
+		channel.sentPayloads[0].embeds[0].data.fields[3].value,
+		"2 (0.8% of messages, 20% of eggs)"
+	);
+});
+
+test("stats smoke: invalid counters are clamped to zero", async () => {
+	const channel = createChannel("chan-1");
+	const statsCommand = loadModuleWithMocks(STATS_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			stats: {
+				trackedMessageCount: -5,
+				spawnedEggCount: "oops",
+				spawnedGoldenEggCount: -1,
+			},
+		},
+	};
+	const message = { channel };
+
+	await statsCommand.run(client, message);
+
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(Array.isArray(channel.sentPayloads[0].embeds), true);
+	assert.equal(channel.sentPayloads[0].embeds.length, 1);
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[0].value, "0");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[1].value, "0");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[2].value, "0% (0/0)");
+	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[3].value, "0 (0% of messages, 0% of eggs)");
 });
 
 test("spawn rate smoke: activity lowers effective rate", () => {

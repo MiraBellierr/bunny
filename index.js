@@ -68,6 +68,11 @@ client.egg = {
 		userId: "",
 		count: 0,
 	},
+	stats: {
+		trackedMessageCount: 0,
+		spawnedEggCount: 0,
+		spawnedGoldenEggCount: 0,
+	},
 	pendingQuiz: null,
 	pendingQuizTimer: null,
 };

@@ -67,6 +67,18 @@ module.exports = async (client, message) => {
 	const timer = 1000 * 60 * 10;
 
 	if (message.channel.id === process.env.CHANNEL) {
+		if (!client.egg.stats) {
+			client.egg.stats = {
+				trackedMessageCount: 0,
+				spawnedEggCount: 0,
+				spawnedGoldenEggCount: 0,
+			};
+		}
+		client.egg.stats.trackedMessageCount += 1;
+		if (client.egg.stats.trackedMessageCount % 25 === 0) {
+			void client.persistEggRuntimeState?.();
+		}
+
 		const now = Date.now();
 		const activityWindowMs = getActivityWindowMs();
 		const activityTimestamps = Array.isArray(client.egg.activityTimestamps)
@@ -113,6 +125,10 @@ module.exports = async (client, message) => {
 				client.egg.followupId = msg2.id;
 				client.egg.id = msg.id;
 				client.egg.isGolden = isGolden;
+				client.egg.stats.spawnedEggCount += 1;
+				if (isGolden) {
+					client.egg.stats.spawnedGoldenEggCount += 1;
+				}
 				if (client.egg.pendingQuizTimer) {
 					clearTimeout(client.egg.pendingQuizTimer);
 					client.egg.pendingQuizTimer = null;
