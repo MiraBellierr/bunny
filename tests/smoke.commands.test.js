@@ -5,6 +5,7 @@ const Module = require("node:module");
 
 const ROOT = path.resolve(__dirname, "..");
 const CLAIM_COMMAND_PATH = path.join(ROOT, "commands/general/claim.js");
+const CONFIG_COMMAND_PATH = path.join(ROOT, "commands/general/config.js");
 const EDIT_COMMAND_PATH = path.join(ROOT, "commands/general/edit.js");
 const LB_COMMAND_PATH = path.join(ROOT, "commands/general/lb.js");
 const RATE_COMMAND_PATH = path.join(ROOT, "commands/general/rate.js");
@@ -795,6 +796,86 @@ test("rate smoke: invalid values do not change state", async () => {
 	assert.equal(channel.sentPayloads.length, 0);
 });
 
+test("config smoke: no args returns current golden chance and streak tier", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.GOLDEN_EGG_CHANCE = "0.03";
+	process.env.CLAIM_STREAK_TIER_SIZE = "5";
+	const channel = createChannel("chan-1");
+	const configCommand = loadModuleWithMocks(CONFIG_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await configCommand.run(client, message, []);
+
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(
+		channel.sentPayloads[0],
+		"Golden egg chance: 0.03 (3%) | Claim streak tier size: 5"
+	);
+});
+
+test("config smoke: golden chance is clamped between 0 and 1", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.GOLDEN_EGG_CHANCE = "0.03";
+	const channel = createChannel("chan-1");
+	const configCommand = loadModuleWithMocks(CONFIG_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await configCommand.run(client, message, ["golden", "2.5"]);
+	assert.equal(process.env.GOLDEN_EGG_CHANCE, "1");
+	assert.equal(channel.sentPayloads[0], "Successfully changed golden egg chance to 1 (100%).");
+
+	await configCommand.run(client, message, ["golden", "-4"]);
+	assert.equal(process.env.GOLDEN_EGG_CHANCE, "0");
+	assert.equal(channel.sentPayloads[1], "Successfully changed golden egg chance to 0 (0%).");
+});
+
+test("config smoke: streak tier size has a minimum of 1", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.CLAIM_STREAK_TIER_SIZE = "5";
+	const channel = createChannel("chan-1");
+	const configCommand = loadModuleWithMocks(CONFIG_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await configCommand.run(client, message, ["streak", "0"]);
+
+	assert.equal(process.env.CLAIM_STREAK_TIER_SIZE, "1");
+	assert.equal(channel.sentPayloads[0], "Successfully changed claim streak tier size to 1.");
+});
+
+test("config smoke: non-owner admin cannot change golden chance", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.GOLDEN_EGG_CHANCE = "0.03";
+	const channel = createChannel("chan-1");
+	const configCommand = loadModuleWithMocks(CONFIG_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "admin-user-1" },
+		member: {
+			permissions: {
+				has: () => true,
+			},
+		},
+		channel,
+	};
+
+	await configCommand.run(client, message, ["golden", "0.2"]);
+
+	assert.equal(process.env.GOLDEN_EGG_CHANCE, "0.03");
+	assert.equal(channel.sentPayloads.length, 0);
+});
+
 test("edit smoke: invalid amount exits safely without updates", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	let updateCalls = 0;
@@ -823,6 +904,50 @@ test("edit smoke: invalid amount exits safely without updates", async () => {
 	assert.equal(updateCalls, 0);
 	assert.equal(channel.sentPayloads.length, 1);
 	assert.equal(channel.sentPayloads[0], "add/minus amount");
+});
+
+test("edit smoke: non-owner admin cannot edit scores", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	let getUserFromArgumentsCalls = 0;
+	let getUserDataCalls = 0;
+	let updateCalls = 0;
+	const channel = createChannel("chan-1");
+	const editCommand = loadModuleWithMocks(EDIT_COMMAND_PATH, {
+		[FUNCTIONS_MODULE_PATH]: {
+			getUserFromArguments: async () => {
+				getUserFromArgumentsCalls += 1;
+				return { id: "target-1", username: "target" };
+			},
+			getUserData: async () => {
+				getUserDataCalls += 1;
+				return { get: () => 10 };
+			},
+		},
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				update: async () => {
+					updateCalls += 1;
+				},
+			},
+		},
+	});
+	const client = {};
+	const message = {
+		author: { id: "admin-user-1" },
+		member: {
+			permissions: {
+				has: () => true,
+			},
+		},
+		channel,
+	};
+
+	await editCommand.run(client, message, ["target-1", "add", "5"]);
+
+	assert.equal(getUserFromArgumentsCalls, 0);
+	assert.equal(getUserDataCalls, 0);
+	assert.equal(updateCalls, 0);
+	assert.equal(channel.sentPayloads.length, 0);
 });
 
 test("spawn smoke: non-manager cannot spawn", async () => {

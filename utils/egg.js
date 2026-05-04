@@ -16,6 +16,7 @@ const rollClaimedEggs = (isGolden) =>
 	isGolden ? Math.floor(Math.random() * 10) + 11 : Math.floor(Math.random() * 10) + 1;
 
 module.exports = {
+	getGoldenEggChance,
 	rollGoldenEgg,
 	getEggMessage,
 	rollClaimedEggs,

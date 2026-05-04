@@ -15,7 +15,7 @@ Current version: `v1.1.1`
 - Supports streak bonus rewards for repeat claimers.
 - Requires top 2 leaderboard players to answer a quiz button question before claim resolution.
 - Persists active egg + streak runtime state across restarts.
-- Includes admin/owner controls for manual spawn, rate changes, edits, and reset.
+- Includes admin/owner controls for manual spawn, rate/tuning changes, edits, and reset.
 
 ## Command List
 
@@ -28,14 +28,23 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
 | `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent. |
-| `<prefix>edit <user> add <n>` | Bot manager | Adds eggs to a user score. |
-| `<prefix>edit <user> minus <n>` | Bot manager | Removes eggs from a user score. |
+| `<prefix>config` | Bot owner | Shows current golden chance and streak tier settings. |
+| `<prefix>config golden <0-1>` | Bot owner | Sets `GOLDEN_EGG_CHANCE` at runtime. |
+| `<prefix>config streak <n>` | Bot owner | Sets `CLAIM_STREAK_TIER_SIZE` at runtime (minimum `1`). |
+| `<prefix>edit <user> add <n>` | Bot owner | Adds eggs to a user score. |
+| `<prefix>edit <user> minus <n>` | Bot owner | Removes eggs from a user score. |
 | `<prefix>reset` | Bot manager | Starts a reset confirmation flow. |
 | `<prefix>reset confirm` | Bot manager | Confirms reset within 30 seconds and truncates egg data. |
 
 Bot manager means either:
 - a user ID listed in `BOT_OWNER_IDS`, or
 - a member with Discord `Administrator` permission.
+
+Bot owner means only a user ID listed in `BOT_OWNER_IDS`.
+
+Runtime tuning note:
+- `<prefix>config` updates process env values for the current bot runtime only.
+- To make those values persistent across restarts, also update `.env`.
 
 ## Reward Rules
 
