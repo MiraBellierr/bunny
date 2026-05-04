@@ -17,6 +17,7 @@
 const { PermissionsBitField } = require("discord.js");
 const logger = require("../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../utils/egg");
+const { pickRandomClaimColor, getClaimPromptText } = require("../utils/claimPassphrase");
 const { getActivityWindowMs, getEffectiveSpawnRate } = require("../utils/spawnRate");
 let before = "";
 
@@ -115,9 +116,10 @@ module.exports = async (client, message) => {
 				if (previousEgg) previousEgg.delete();
 
 				const isGolden = rollGoldenEgg();
+				const claimColor = pickRandomClaimColor();
 				const msg = await channel.send(getEggMessage(isGolden));
 				const msg2 = await channel.send(
-					`-# type \`${process.env.PREFIX}claim\` to claim it! Person below is cute.`
+					`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Person below is cute.`
 				);
 
 				client.cooldown = Date.now();
@@ -125,6 +127,7 @@ module.exports = async (client, message) => {
 				client.egg.followupId = msg2.id;
 				client.egg.id = msg.id;
 				client.egg.isGolden = isGolden;
+				client.egg.claimColor = claimColor;
 				client.egg.stats.spawnedEggCount += 1;
 				if (isGolden) {
 					client.egg.stats.spawnedGoldenEggCount += 1;

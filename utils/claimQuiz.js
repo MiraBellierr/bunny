@@ -133,6 +133,7 @@ const clearActiveEggState = async (client, expectedEggId) => {
 		client.egg.drop = "";
 		client.egg.followupId = "";
 		client.egg.isGolden = false;
+		client.egg.claimColor = "";
 	}
 	client.egg.pendingQuiz = null;
 	clearPendingQuizTimer(client);

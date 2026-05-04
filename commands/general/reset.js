@@ -56,6 +56,7 @@ module.exports = {
 			client.egg.followupId = "";
 			client.egg.drop = "";
 			client.egg.isGolden = false;
+			client.egg.claimColor = "";
 			client.egg.claimLock = null;
 			if (client.egg.pendingQuizTimer) {
 				clearTimeout(client.egg.pendingQuizTimer);

@@ -63,6 +63,7 @@ client.egg = {
 	rate: 3,
 	drop: "",
 	isGolden: false,
+	claimColor: "",
 	activityTimestamps: [],
 	claimStreak: {
 		userId: "",

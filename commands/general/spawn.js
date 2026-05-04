@@ -17,6 +17,7 @@
 const logger = require("../../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
 const { canManageBot } = require("../../utils/auth");
+const { pickRandomClaimColor, getClaimPromptText } = require("../../utils/claimPassphrase");
 
 module.exports = {
 	name: "spawn",
@@ -31,9 +32,10 @@ module.exports = {
 		if (eggMessage) await eggMessage.delete().catch(() => null);
 
 		const isGolden = rollGoldenEgg();
+		const claimColor = pickRandomClaimColor();
 		const spawnEgg = await channel.send(getEggMessage(isGolden));
 		const msg2 = await channel.send(
-			`-# type \`${process.env.PREFIX}claim\` to claim it! Beep booop!!!`
+			`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Beep booop!!!`
 		);
 
 		if (client.egg.pendingQuizTimer) {
@@ -44,6 +46,7 @@ module.exports = {
 		client.egg.id = spawnEgg.id;
 		client.egg.followupId = msg2.id;
 		client.egg.isGolden = isGolden;
+		client.egg.claimColor = claimColor;
 		await client.persistEggRuntimeState?.();
 		logger.info(
 			`Egg manually spawned | user=${message.author.id} channel=${channel.id} eggMessage=${spawnEgg.id} golden=${isGolden}`

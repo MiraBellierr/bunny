@@ -1,9 +1,18 @@
 const { EggRuntimeState } = require("../database/schemas/eggRuntimeState");
 const Sequelize = require("sequelize");
 const logger = require("./logger");
+const { normalizeClaimColor, isValidClaimColor } = require("./claimPassphrase");
 
 const RUNTIME_STATE_ID = 1;
-const RUNTIME_STATS_COLUMNS = [
+const RUNTIME_STATE_COLUMNS = [
+	{
+		name: "activeClaimColor",
+		definition: {
+			type: Sequelize.STRING,
+			allowNull: false,
+			defaultValue: "",
+		},
+	},
 	{
 		name: "trackedMessageCount",
 		definition: {
@@ -32,6 +41,10 @@ const RUNTIME_STATS_COLUMNS = [
 let runtimeStateSchemaReadyPromise = null;
 
 const toSafeString = (value) => (typeof value === "string" ? value : "");
+const toSafeClaimColor = (value) => {
+	const normalizedValue = normalizeClaimColor(value);
+	return isValidClaimColor(normalizedValue) ? normalizedValue : "";
+};
 
 const toSafeStreakCount = (value) => {
 	const parsed = Number.parseInt(value, 10);
@@ -52,6 +65,7 @@ const buildStatePayload = (eggState = {}) => ({
 	activeEggId: toSafeString(eggState.id),
 	activeFollowupId: toSafeString(eggState.followupId),
 	activeDropUserId: toSafeString(eggState.drop),
+	activeClaimColor: toSafeClaimColor(eggState.claimColor),
 	activeIsGolden: Boolean(eggState.isGolden),
 	claimStreakUserId: toSafeString(eggState.claimStreak?.userId),
 	claimStreakCount: toSafeStreakCount(eggState.claimStreak?.count),
@@ -64,6 +78,7 @@ const applyStateToClient = (client, persistedState) => {
 	client.egg.id = toSafeString(persistedState.get("activeEggId"));
 	client.egg.followupId = toSafeString(persistedState.get("activeFollowupId"));
 	client.egg.drop = toSafeString(persistedState.get("activeDropUserId"));
+	client.egg.claimColor = toSafeClaimColor(persistedState.get("activeClaimColor"));
 	client.egg.isGolden = Boolean(persistedState.get("activeIsGolden"));
 	client.egg.claimStreak = {
 		userId: toSafeString(persistedState.get("claimStreakUserId")),
@@ -93,7 +108,7 @@ const ensureEggRuntimeStateSchema = async () => {
 		const queryInterface = EggRuntimeState.sequelize.getQueryInterface();
 		const tableDefinition = await queryInterface.describeTable(tableName);
 
-		for (const column of RUNTIME_STATS_COLUMNS) {
+		for (const column of RUNTIME_STATE_COLUMNS) {
 			if (Object.prototype.hasOwnProperty.call(tableDefinition, column.name)) continue;
 
 			await queryInterface.addColumn(tableName, column.name, column.definition);
@@ -127,7 +142,7 @@ const loadEggRuntimeState = async (client) => {
 
 		applyStateToClient(client, persistedState);
 		logger.info(
-			`Egg runtime state loaded | eggMessage=${client.egg.id || "none"} followup=${client.egg.followupId || "none"} streakUser=${client.egg.claimStreak.userId || "none"} streakCount=${client.egg.claimStreak.count} messages=${client.egg.stats.trackedMessageCount} spawned=${client.egg.stats.spawnedEggCount} goldenSpawned=${client.egg.stats.spawnedGoldenEggCount}`
+			`Egg runtime state loaded | eggMessage=${client.egg.id || "none"} followup=${client.egg.followupId || "none"} claimColor=${client.egg.claimColor || "none"} streakUser=${client.egg.claimStreak.userId || "none"} streakCount=${client.egg.claimStreak.count} messages=${client.egg.stats.trackedMessageCount} spawned=${client.egg.stats.spawnedEggCount} goldenSpawned=${client.egg.stats.spawnedGoldenEggCount}`
 		);
 	} catch (error) {
 		logger.error("Failed to load egg runtime state", error);

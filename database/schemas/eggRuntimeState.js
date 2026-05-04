@@ -35,6 +35,10 @@ const EggRuntimeState = sequelize.define("EggRuntimeState", {
 		type: Sequelize.STRING,
 		defaultValue: "",
 	},
+	activeClaimColor: {
+		type: Sequelize.STRING,
+		defaultValue: "",
+	},
 	activeIsGolden: {
 		type: Sequelize.BOOLEAN,
 		defaultValue: false,
