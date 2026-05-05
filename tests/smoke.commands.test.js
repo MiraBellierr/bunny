@@ -1012,7 +1012,7 @@ test("edit smoke: non-owner admin cannot edit scores", async () => {
 	assert.equal(channel.sentPayloads.length, 0);
 });
 
-test("spawn smoke: non-manager cannot spawn", async () => {
+test("spawn smoke: non-owner admin cannot spawn", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	process.env.CHANNEL = "spawn-chan";
 	const spawnChannel = createChannel("spawn-chan");
@@ -1040,6 +1040,11 @@ test("spawn smoke: non-manager cannot spawn", async () => {
 	};
 	const message = {
 		author: { id: "user-2" },
+		member: {
+			permissions: {
+				has: () => true,
+			},
+		},
 		channel: messageChannel,
 	};
 
@@ -1051,8 +1056,8 @@ test("spawn smoke: non-manager cannot spawn", async () => {
 	assert.equal(messageChannel.sentPayloads.length, 0);
 });
 
-test("spawn smoke: admin can spawn and stale previous egg fetch is tolerated", async () => {
-	process.env.BOT_OWNER_IDS = "";
+test("spawn smoke: owner can spawn and stale previous egg fetch is tolerated", async () => {
+	process.env.BOT_OWNER_IDS = "admin-user-1";
 	process.env.CHANNEL = "spawn-chan";
 	process.env.PREFIX = ".";
 	let persistCalls = 0;
