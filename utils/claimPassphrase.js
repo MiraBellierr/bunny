@@ -1,4 +1,4 @@
-const CLAIM_COLOR_OPTIONS = ["indigo", "magenta", "seagrass"];
+const CLAIM_COLOR_OPTIONS = ["indigo", "magenta", "seagrass", "lightsalmon", "darksalmon", "lightcoral", "indianred","firebrick", "darkred", "orangered", "darkorange", "lightyellow", "lemonchiffon", "lightgoldenrodyellow", "papayawhip", "moccasin"];
 
 const normalizeClaimColor = (value) => {
 	if (typeof value !== "string") return "";
