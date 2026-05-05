@@ -1,4 +1,7 @@
-const CLAIM_COLOR_OPTIONS = ["indigo", "magenta", "seagrass", "lightsalmon", "darksalmon", "lightcoral", "indianred","firebrick", "darkred", "orangered", "darkorange", "lightyellow", "lemonchiffon", "lightgoldenrodyellow", "papayawhip", "moccasin"];
+const CLAIM_COLOR_OPTIONS = ["indigo", "magenta", "seagrass", "lightsalmon", "darksalmon", "lightcoral",
+	 "indianred","firebrick", "darkred", "orangered", "darkorange", "lightyellow", "lemonchiffon", 
+	 "lightgoldenrodyellow", "papayawhip", "moccasin", "mediumspringgreen", "mediumseagreen", "mediumaquamarine", "paleturquoise", "darkolivegreen", "cornflowerblue",
+	  "midnightblue", "deeppink", "hotpink", "floralwhite", "oldlace", "beige", "gainsboro", "rosybrown", "sienna", "maroon", "tan"];
 
 const normalizeClaimColor = (value) => {
 	if (typeof value !== "string") return "";
