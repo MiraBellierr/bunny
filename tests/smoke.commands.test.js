@@ -17,6 +17,7 @@ const INTERACTION_EVENT_PATH = path.join(ROOT, "events/interactionCreate.js");
 const AUTH_UTIL_PATH = path.join(ROOT, "utils/auth.js");
 const EGG_RUNTIME_STATE_UTIL_PATH = path.join(ROOT, "utils/eggRuntimeState.js");
 const { getEffectiveSpawnRate } = require("../utils/spawnRate");
+const { CLAIM_COLOR_OPTIONS } = require("../utils/claimPassphrase");
 
 const FUNCTIONS_MODULE_PATH = require.resolve(path.join(ROOT, "utils/functions.js"));
 const EGG_SCHEMA_MODULE_PATH = require.resolve(path.join(ROOT, "database/schemas/egg.js"));
@@ -976,6 +977,27 @@ test("rate smoke: invalid values do not change state", async () => {
 	assert.equal(channel.sentPayloads.length, 0);
 });
 
+test("rate smoke: decimal values are supported", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const rateCommand = loadModuleWithMocks(RATE_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			rate: 42,
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await rateCommand.run(client, message, ["0.025"]);
+
+	assert.equal(client.egg.rate, 0.025);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(channel.sentPayloads[0], "Successfully changed a spawn rate to 0.025%!");
+});
+
 test("config smoke: no args returns current golden chance and streak tier", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	process.env.GOLDEN_EGG_CHANCE = "0.03";
@@ -1215,14 +1237,11 @@ test("spawn smoke: owner can spawn and stale previous egg fetch is tolerated", a
 	assert.equal(client.egg.id, "m1");
 	assert.equal(client.egg.followupId, "m2");
 	assert.equal(client.egg.isGolden, true);
-	assert.match(client.egg.claimColor, /^(indigo|magenta|seagrass)$/);
+	assert.equal(CLAIM_COLOR_OPTIONS.includes(client.egg.claimColor), true);
 	assert.equal(persistCalls, 1);
 	assert.equal(spawnChannel.sentPayloads.length, 2);
 	assert.equal(spawnChannel.sentPayloads[0], "golden-egg-message");
-	assert.match(
-		spawnChannel.sentPayloads[1],
-		/type `\.claim (indigo|magenta|seagrass)` to claim it!/
-	);
+	assert.match(spawnChannel.sentPayloads[1], /type `\.claim [a-z]+` to claim it!/);
 	assert.equal(messageChannel.sentPayloads[0], "Successfully spawned an egg!");
 });
 
@@ -1269,7 +1288,7 @@ test("spawn smoke: existing active egg is deleted before respawn", async () => {
 	assert.equal(client.egg.id, "m1");
 	assert.equal(client.egg.followupId, "m2");
 	assert.equal(client.egg.isGolden, false);
-	assert.match(client.egg.claimColor, /^(indigo|magenta|seagrass)$/);
+	assert.equal(CLAIM_COLOR_OPTIONS.includes(client.egg.claimColor), true);
 	assert.equal(persistCalls, 1);
 });
 
@@ -1578,4 +1597,15 @@ test("spawn rate smoke: low activity raises effective rate", () => {
 	});
 
 	assert.equal(effectiveRate, 8);
+});
+
+test("spawn rate smoke: decimal rates are preserved", () => {
+	process.env.DYNAMIC_SPAWN_RATE = "false";
+
+	const effectiveRate = getEffectiveSpawnRate({
+		baseRate: 0.025,
+		activityCount: 500,
+	});
+
+	assert.equal(effectiveRate, 0.025);
 });

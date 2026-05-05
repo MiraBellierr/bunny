@@ -20,7 +20,7 @@ const getActivityWindowMs = () => {
 };
 
 const getEffectiveSpawnRate = ({ baseRate, activityCount }) => {
-	const normalizedBaseRate = clamp(Math.round(Number(baseRate) || 0), 0, 100);
+	const normalizedBaseRate = clamp(Number(baseRate) || 0, 0, 100);
 	if (!isDynamicSpawnRateEnabled()) return normalizedBaseRate;
 
 	const targetMessages = Math.max(
@@ -39,7 +39,7 @@ const getEffectiveSpawnRate = ({ baseRate, activityCount }) => {
 	const safeActivityCount = Math.max(1, activityCount);
 	const multiplier = clamp(targetMessages / safeActivityCount, minMultiplier, maxMultiplier);
 
-	return clamp(Math.round(normalizedBaseRate * multiplier), 0, 100);
+	return clamp(normalizedBaseRate * multiplier, 0, 100);
 };
 
 module.exports = {

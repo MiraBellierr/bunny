@@ -25,8 +25,8 @@ module.exports = {
 			return message.channel.send(`The spawn rate: ${client.egg.rate}%`);
 		}
 
-		const parsedRate = Number.parseInt(args[0], 10);
-		if (Number.isNaN(parsedRate)) return;
+		const parsedRate = Number.parseFloat(args[0]);
+		if (!Number.isFinite(parsedRate)) return;
 
 		const clampedRate = Math.min(100, Math.max(0, parsedRate));
 		client.egg.rate = clampedRate;

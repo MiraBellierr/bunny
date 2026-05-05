@@ -65,7 +65,7 @@ module.exports = async (client, message) => {
 		}
 	}
 
-	const timer = 1000 * 60 * 10;
+	const timer = 1000 * 5;
 
 	if (message.channel.id === process.env.CHANNEL) {
 		if (!client.egg.stats) {
@@ -99,7 +99,7 @@ module.exports = async (client, message) => {
 
 		if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
 			const channel = await client.channels.fetch(process.env.CHANNEL);
-			const random = Math.floor(Math.random() * 100);
+			const random = Math.random() * 100;
 			logger.info(
 				`Egg roll check | random=${random} baseRate=${client.egg.rate} effectiveRate=${effectiveRate} activity=${activityCount}`
 			);

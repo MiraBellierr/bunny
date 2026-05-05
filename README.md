@@ -30,7 +30,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
 | `<prefix>ben <user> [reason]` | Bot manager | Sends a fake ban message only (does not ban anyone). |
-| `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent. |
+| `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent (decimals supported). |
 | `<prefix>config` | Bot owner | Shows current golden chance and streak tier settings. |
 | `<prefix>config golden <0-1>` | Bot owner | Sets `GOLDEN_EGG_CHANCE` at runtime. |
 | `<prefix>config streak <n>` | Bot owner | Sets `CLAIM_STREAK_TIER_SIZE` at runtime (minimum `1`). |
@@ -62,9 +62,9 @@ Runtime tuning note:
 
 ## Spawn Rules
 
-- Base spawn rate starts at `3%` (`client.egg.rate = 3`).
+- Base spawn rate starts at `0.025%` (`client.egg.rate = 0.025`).
 - Spawn checks happen from activity in the configured `CHANNEL`.
-- There is a spawn cooldown of `10` minutes between spawn attempts.
+- There is a spawn cooldown of `5` seconds between spawn attempts.
 - Dynamic spawn rate can scale up/down based on message activity:
   - Defaults: 300-second window, target 30 messages, multiplier clamped to `0.5-2`.
   - Effective rate is clamped to `0-100`.
