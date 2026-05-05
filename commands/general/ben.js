@@ -1,10 +1,6 @@
-const { canManageBot } = require("../../utils/auth");
-
 module.exports = {
 	name: "ben",
 	run: async (_client, message, args = []) => {
-		if (!canManageBot(message)) return;
-
 		const target = String(args[0] || "").trim();
 		if (!target) {
 			return message.channel.send("Usage: ben <user> [reason]");

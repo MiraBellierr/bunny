@@ -188,7 +188,7 @@ const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 	if (channel) {
 		const quizMessage = await channel.messages.fetch(pendingQuiz.quizMessageId).catch(() => null);
 		if (quizMessage) {
-			await quizMessage.delete().catch(() => null);
+			await quizMessage.edit({ components: [] }).catch(() => null);
 		}
 
 		await cleanupEggMessages(channel, pendingQuiz.eggId, pendingQuiz.followupId);

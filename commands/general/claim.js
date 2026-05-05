@@ -96,12 +96,12 @@ module.exports = {
 				const quizQuestion = pickRandomQuizQuestion();
 				const quizToken = createQuizToken();
 				const quizExpiresAt = Date.now() + CLAIM_QUIZ_TIMEOUT_MS;
+				const quizCountdown = `<t:${Math.floor(quizExpiresAt / 1000)}:R>`;
 				const quizEmbed = new EmbedBuilder()
 					.setTitle("Top 2 Quiz Challenge")
-					.setDescription(formatQuizPrompt(quizQuestion))
-					.setFooter({
-						text: `Answer within ${Math.floor(CLAIM_QUIZ_TIMEOUT_MS / 1000)} seconds`,
-					});
+					.setDescription(
+						`${formatQuizPrompt(quizQuestion)}\n\nTime remaining: ${quizCountdown}`
+					);
 				const buttonRow = new ActionRowBuilder().addComponents(
 					QUIZ_BUTTON_LABELS.map((label, index) =>
 						new ButtonBuilder()

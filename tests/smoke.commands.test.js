@@ -454,6 +454,10 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 	assert.equal(channel.sentPayloads.length, 1);
 	assert.equal(Array.isArray(channel.sentPayloads[0].components), true);
 	assert.equal(channel.sentPayloads[0].components.length, 1);
+	assert.match(
+		channel.sentPayloads[0].embeds[0].data.description,
+		/Time remaining: <t:\d+:R>$/
+	);
 	assert.equal(client.egg.pendingQuiz.userId, "user-1");
 	assert.equal(client.egg.pendingQuiz.eggId, "egg-top2-1");
 	assert.equal(client.egg.pendingQuiz.followupId, "followup-top2-1");
@@ -648,6 +652,119 @@ test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", 
 	assert.equal(client.egg.claimColor, "");
 	assert.match(channel.sentPayloads[0].content, /answered incorrectly/);
 	assert.match(channel.sentPayloads[0].content, /`-2` eggs/);
+});
+
+test("interaction smoke: timed-out quiz keeps question window and removes buttons", async () => {
+	const channel = createChannel("chan-1");
+	let decrementPayload = null;
+	let quizMessageDeleted = false;
+	let quizButtonsRemoved = false;
+	const eggDeleteState = { deleted: false };
+	const followupDeleteState = { deleted: false };
+	let replyPayload = null;
+	let persisted = false;
+
+	channel.messageMap.set("quiz-msg-timeout-1", {
+		edit: async (payload) => {
+			quizButtonsRemoved =
+				Array.isArray(payload?.components) && payload.components.length === 0;
+		},
+		delete: async () => {
+			quizMessageDeleted = true;
+		},
+	});
+	channel.messageMap.set("egg-timeout-1", {
+		delete: async () => {
+			eggDeleteState.deleted = true;
+		},
+	});
+	channel.messageMap.set("followup-timeout-1", {
+		delete: async () => {
+			followupDeleteState.deleted = true;
+		},
+	});
+
+	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => {},
+				findOne: async () => ({ get: () => 3 }),
+				decrement: async (...args) => {
+					decrementPayload = args;
+				},
+			},
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		channels: { fetch: async () => channel },
+		egg: {
+			id: "egg-timeout-1",
+			followupId: "followup-timeout-1",
+			drop: "",
+			isGolden: false,
+			claimColor: "indigo",
+			claimLock: {
+				token: "lock-timeout-1",
+				eggId: "egg-timeout-1",
+				expiresAt: Date.now() + 5000,
+			},
+			claimStreak: {
+				userId: "user-9",
+				count: 9,
+			},
+			pendingQuiz: {
+				token: "token-timeout-1",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-timeout-1",
+				eggId: "egg-timeout-1",
+				followupId: "followup-timeout-1",
+				claimedIsGolden: false,
+				totalClaimedEggs: 4,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				correctIndex: 2,
+				expiresAt: Date.now() - 1000,
+				lockToken: "lock-timeout-1",
+			},
+		},
+		persistEggRuntimeState: async () => {
+			persisted = true;
+		},
+	};
+	const interaction = {
+		isButton: () => true,
+		customId: "claimquiz:token-timeout-1:1",
+		user: { id: "user-1" },
+		channel,
+		message: {
+			edit: async () => {},
+		},
+		deferUpdate: async () => {},
+		reply: async (payload) => {
+			replyPayload = payload;
+		},
+		update: async () => {},
+	};
+
+	await interactionHandler(client, interaction);
+
+	assert.deepEqual(decrementPayload[0], { point: 3 });
+	assert.deepEqual(decrementPayload[1], { where: { userid: "user-1" } });
+	assert.equal(quizMessageDeleted, false);
+	assert.equal(quizButtonsRemoved, true);
+	assert.equal(eggDeleteState.deleted, true);
+	assert.equal(followupDeleteState.deleted, true);
+	assert.equal(client.egg.pendingQuiz, null);
+	assert.equal(client.egg.claimLock, null);
+	assert.equal(client.egg.claimColor, "");
+	assert.equal(persisted, true);
+	assert.equal(replyPayload?.ephemeral, true);
+	assert.match(replyPayload?.content || "", /Time is up/);
+	assert.match(channel.sentPayloads[0].content, /did not answer in time/);
 });
 
 test("interaction smoke: only the claimant can answer the quiz", async () => {
@@ -1169,15 +1286,14 @@ test("ben smoke: bot manager can run fake ban with reason", async () => {
 	await benCommand.run(client, message, ["@user-2", "spamming"]);
 
 	assert.equal(channel.sentPayloads.length, 1);
-	const mentionBreak = String.fromCharCode(8203);
 	assert.equal(channel.sentPayloads[0].allowedMentions?.parse?.length, 0);
 	assert.equal(
 		channel.sentPayloads[0].content,
-		`@${mentionBreak}user-2 has successfully been benned. Reason: spamming.`
+		"@user-2 has successfully been benned. Reason: spamming."
 	);
 });
 
-test("ben smoke: non-manager cannot run fake ban", async () => {
+test("ben smoke: non-manager can run fake ban", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	const channel = createChannel("chan-1");
 	const benCommand = loadModuleWithMocks(BEN_COMMAND_PATH, {});
@@ -1194,7 +1310,11 @@ test("ben smoke: non-manager cannot run fake ban", async () => {
 
 	await benCommand.run(client, message, ["@user-3"]);
 
-	assert.equal(channel.sentPayloads.length, 0);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(
+		channel.sentPayloads[0].content,
+		"@user-3 has successfully been benned. Reason: No reason provided."
+	);
 });
 
 test("auth smoke: owner IDs support commas and spaces", () => {
