@@ -4,6 +4,7 @@ const path = require("node:path");
 const Module = require("node:module");
 
 const ROOT = path.resolve(__dirname, "..");
+const BEN_COMMAND_PATH = path.join(ROOT, "commands/general/ben.js");
 const CLAIM_COMMAND_PATH = path.join(ROOT, "commands/general/claim.js");
 const CONFIG_COMMAND_PATH = path.join(ROOT, "commands/general/config.js");
 const EDIT_COMMAND_PATH = path.join(ROOT, "commands/general/edit.js");
@@ -1153,6 +1154,47 @@ test("spawn smoke: existing active egg is deleted before respawn", async () => {
 	assert.equal(client.egg.isGolden, false);
 	assert.match(client.egg.claimColor, /^(indigo|magenta|seagrass)$/);
 	assert.equal(persistCalls, 1);
+});
+
+test("ben smoke: bot manager can run fake ban with reason", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const benCommand = loadModuleWithMocks(BEN_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await benCommand.run(client, message, ["@user-2", "spamming"]);
+
+	assert.equal(channel.sentPayloads.length, 1);
+	const mentionBreak = String.fromCharCode(8203);
+	assert.equal(channel.sentPayloads[0].allowedMentions?.parse?.length, 0);
+	assert.equal(
+		channel.sentPayloads[0].content,
+		`@${mentionBreak}user-2 has successfully been benned. Reason: spamming.`
+	);
+});
+
+test("ben smoke: non-manager cannot run fake ban", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const benCommand = loadModuleWithMocks(BEN_COMMAND_PATH, {});
+	const client = {};
+	const message = {
+		author: { id: "user-2" },
+		member: {
+			permissions: {
+				has: () => false,
+			},
+		},
+		channel,
+	};
+
+	await benCommand.run(client, message, ["@user-3"]);
+
+	assert.equal(channel.sentPayloads.length, 0);
 });
 
 test("auth smoke: owner IDs support commas and spaces", () => {

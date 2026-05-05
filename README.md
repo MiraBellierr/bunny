@@ -29,6 +29,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 | `<prefix>stats` | Everyone | Shows tracked message count, egg spawns, and golden spawn ratios. |
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
+| `<prefix>ben <user> [reason]` | Bot manager | Sends a fake ban message only (does not ban anyone). |
 | `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent. |
 | `<prefix>config` | Bot owner | Shows current golden chance and streak tier settings. |
 | `<prefix>config golden <0-1>` | Bot owner | Sets `GOLDEN_EGG_CHANCE` at runtime. |
