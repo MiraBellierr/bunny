@@ -12,12 +12,10 @@ module.exports = {
 
 		const reason = args.slice(1).join(" ").trim();
 		const reasonText = reason ? reason : "No reason provided";
-		const mentionBreak = String.fromCharCode(8203);
-		const safeTarget = target.replace(/@/g, `@${mentionBreak}`);
 
 		return message.channel.send(
 			{
-				content: `${safeTarget} has successfully been benned. Reason: ${reasonText}.`,
+				content: `${target} has successfully been benned. Reason: ${reasonText}.`,
 				allowedMentions: { parse: [] },
 			}
 		);
