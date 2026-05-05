@@ -1,6 +1,6 @@
 const DEFAULT_WINDOW_SECONDS = 300;
 const DEFAULT_TARGET_MESSAGES = 30;
-const DEFAULT_MIN_MULTIPLIER = 0.5;
+const DEFAULT_MIN_MULTIPLIER = 0.75;
 const DEFAULT_MAX_MULTIPLIER = 2;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));

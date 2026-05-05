@@ -62,11 +62,11 @@ Runtime tuning note:
 
 ## Spawn Rules
 
-- Base spawn rate starts at `0.025%` (`client.egg.rate = 0.025`).
+- Base spawn rate starts at `3%` (`client.egg.rate = 3`).
 - Spawn checks happen from activity in the configured `CHANNEL`.
 - There is a spawn cooldown of `5` seconds between spawn attempts.
 - Dynamic spawn rate can scale up/down based on message activity:
-  - Defaults: 300-second window, target 30 messages, multiplier clamped to `0.5-2`.
+  - Defaults: 300-second window, target 30 messages, multiplier clamped to `0.75-2`.
   - Effective rate is clamped to `0-100`.
 - Golden egg roll chance default is `0.03` (3%).
 
@@ -103,7 +103,7 @@ CLAIM_STREAK_TIER_SIZE=5
 DYNAMIC_SPAWN_RATE=true
 DYNAMIC_RATE_WINDOW_SECONDS=300
 DYNAMIC_RATE_TARGET_MESSAGES=30
-DYNAMIC_RATE_MIN_MULTIPLIER=0.5
+DYNAMIC_RATE_MIN_MULTIPLIER=0.75
 DYNAMIC_RATE_MAX_MULTIPLIER=2
 ```
 
@@ -128,7 +128,7 @@ If Bunny boots correctly, it logs in and starts watching messages for egg spawn 
 | `DYNAMIC_SPAWN_RATE` | No | `true` | Set `false` to disable activity-based scaling. |
 | `DYNAMIC_RATE_WINDOW_SECONDS` | No | `300` | Activity sampling window length. |
 | `DYNAMIC_RATE_TARGET_MESSAGES` | No | `30` | Activity target used for multiplier calculation. |
-| `DYNAMIC_RATE_MIN_MULTIPLIER` | No | `0.5` | Lower multiplier clamp. |
+| `DYNAMIC_RATE_MIN_MULTIPLIER` | No | `0.75` | Lower multiplier clamp. |
 | `DYNAMIC_RATE_MAX_MULTIPLIER` | No | `2` | Upper multiplier clamp. |
 
 ## Dev Commands
