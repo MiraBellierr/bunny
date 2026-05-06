@@ -41,7 +41,7 @@ When did Mahatma Gandhi die?|1948|1961|1975|1997
 Has Toronto ever hosted the Olympics?|No|Yes
 Which of these noble ranks is highest?|Duke|Baron|Earl|Marquis
 The U.S. state of New Jersey is named after Jersey. But what is Jersey?|A British island off the coast of France|A Dutch province|A Native American tribe|There are multiple theories - no one is sure
-Does Mars have any moons?|Yes|No|Only during certain times of the year|Only in the southern hemisphere
+Does Mars have any moons?|Yes|No
 A triangle has one side with a length of 3 and another side with a length of 4. What is the length of the third side?|Impossible to say|4|5|6
 Who is Paul Simon?|A singer-songwrite|A famous lawyer|A playwright|A serial killer
 Which of these is NOT caused by a virus?|Cholera|Herpes|Measles|Smallpox
