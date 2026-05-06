@@ -243,6 +243,56 @@ test("claim smoke: active lock blocks duplicate claim attempts", async () => {
 	assert.equal(channel.sentPayloads.length, 0);
 });
 
+test("claim smoke: active pending quiz blocks new claim attempts", async () => {
+	process.env.CHANNEL = "chan-1";
+	const channel = createChannel("chan-1");
+	let incrementCallCount = 0;
+
+	const claimCommand = loadModuleWithMocks(CLAIM_COMMAND_PATH, {
+		[FUNCTIONS_MODULE_PATH]: {
+			getUserData: async () => ({ get: () => 0 }),
+		},
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => {
+					incrementCallCount += 1;
+				},
+				findAll: async () => [],
+			},
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		channels: { fetch: async () => channel },
+		egg: {
+			id: "egg-1",
+			followupId: "followup-1",
+			drop: "",
+			claimColor: "magenta",
+			claimLock: null,
+			pendingQuiz: {
+				token: "quiz-token-1",
+				userId: "user-1",
+				eggId: "egg-1",
+				expiresAt: Date.now() + 60_000,
+			},
+		},
+	};
+	const message = {
+		id: "msg-claim-active-quiz-1",
+		author: { id: "user-2" },
+		member: "<@user-2>",
+		channel,
+	};
+
+	await claimCommand.run(client, message, ["magenta"]);
+
+	assert.equal(incrementCallCount, 0);
+	assert.equal(channel.sentPayloads.length, 0);
+	assert.equal(client.egg.pendingQuiz.token, "quiz-token-1");
+});
+
 test("claim smoke: streak tier adds bonus points", async () => {
 	process.env.CHANNEL = "chan-1";
 	process.env.CLAIM_STREAK_TIER_SIZE = "2";
@@ -1290,6 +1340,47 @@ test("spawn smoke: existing active egg is deleted before respawn", async () => {
 	assert.equal(client.egg.isGolden, false);
 	assert.equal(CLAIM_COLOR_OPTIONS.includes(client.egg.claimColor), true);
 	assert.equal(persistCalls, 1);
+});
+
+test("spawn smoke: owner cannot spawn while claim quiz is active", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.CHANNEL = "spawn-chan";
+	const spawnChannel = createChannel("spawn-chan");
+	const messageChannel = createChannel("msg-chan");
+	let persistCalls = 0;
+	const spawnCommand = loadModuleWithMocks(SPAWN_COMMAND_PATH, {
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+	const client = {
+		channels: { fetch: async () => spawnChannel },
+		egg: {
+			id: "egg-1",
+			followupId: "followup-1",
+			pendingQuiz: {
+				token: "quiz-token-1",
+				userId: "user-3",
+				eggId: "egg-1",
+				expiresAt: Date.now() + 60_000,
+			},
+		},
+		persistEggRuntimeState: async () => {
+			persistCalls += 1;
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel: messageChannel,
+	};
+
+	await spawnCommand.run(client, message);
+
+	assert.equal(spawnChannel.sentPayloads.length, 0);
+	assert.equal(persistCalls, 0);
+	assert.equal(messageChannel.sentPayloads.length, 1);
+	assert.equal(
+		messageChannel.sentPayloads[0],
+		"A claim quiz is currently active. Finish it before spawning a new egg."
+	);
 });
 
 test("ben smoke: bot manager can run fake ban with reason", async () => {

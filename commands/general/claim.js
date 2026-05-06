@@ -53,6 +53,9 @@ module.exports = {
 		if (client.egg.pendingQuiz && Date.now() > client.egg.pendingQuiz.expiresAt) {
 			await resolvePendingQuizAsIncorrect(client, "timeout");
 		}
+		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
+			return;
+		}
 		if (!client.egg.id) return;
 
 		const activeLock = client.egg.claimLock;

@@ -23,6 +23,12 @@ module.exports = {
 	name: "spawn",
 	run: async (client, message) => {
 		if (!isBotOwner(message?.author?.id)) return;
+		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
+			await message.channel.send(
+				"A claim quiz is currently active. Finish it before spawning a new egg."
+			);
+			return;
+		}
 
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
@@ -38,11 +44,14 @@ module.exports = {
 			`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Beep booop!!!`
 		);
 
-		if (client.egg.pendingQuizTimer) {
-			clearTimeout(client.egg.pendingQuizTimer);
-			client.egg.pendingQuizTimer = null;
+		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
+			await spawnEgg.delete().catch(() => null);
+			await msg2.delete().catch(() => null);
+			await message.channel.send(
+				"Spawn canceled because a claim quiz became active during this request."
+			);
+			return;
 		}
-		client.egg.pendingQuiz = null;
 		client.egg.id = spawnEgg.id;
 		client.egg.followupId = msg2.id;
 		client.egg.isGolden = isGolden;

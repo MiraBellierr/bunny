@@ -105,7 +105,13 @@ module.exports = async (client, message) => {
 			);
 
 			if (before !== message.author.id && random < effectiveRate) {
-				before = message.author.id;
+				if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
+					logger.info(
+						`Egg spawn skipped | reason=active_claim_quiz quizUser=${client.egg.pendingQuiz.userId} quizEgg=${client.egg.pendingQuiz.eggId}`
+					);
+					return;
+				}
+
 				let previousEgg = null;
 				if (client.egg.id) {
 					previousEgg = await message.channel.messages
@@ -113,7 +119,9 @@ module.exports = async (client, message) => {
 						.catch(() => null);
 				}
 
-				if (previousEgg) previousEgg.delete();
+				if (previousEgg) {
+					await previousEgg.delete().catch(() => null);
+				}
 
 				const isGolden = rollGoldenEgg();
 				const claimColor = pickRandomClaimColor();
@@ -122,6 +130,16 @@ module.exports = async (client, message) => {
 					`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Person below is cute.`
 				);
 
+				if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
+					await msg.delete().catch(() => null);
+					await msg2.delete().catch(() => null);
+					logger.info(
+						`Egg spawn discarded | reason=active_claim_quiz quizUser=${client.egg.pendingQuiz.userId} quizEgg=${client.egg.pendingQuiz.eggId}`
+					);
+					return;
+				}
+
+				before = message.author.id;
 				client.cooldown = Date.now();
 				client.egg.drop = "";
 				client.egg.followupId = msg2.id;
@@ -132,11 +150,6 @@ module.exports = async (client, message) => {
 				if (isGolden) {
 					client.egg.stats.spawnedGoldenEggCount += 1;
 				}
-				if (client.egg.pendingQuizTimer) {
-					clearTimeout(client.egg.pendingQuizTimer);
-					client.egg.pendingQuizTimer = null;
-				}
-				client.egg.pendingQuiz = null;
 				await client.persistEggRuntimeState?.();
 				logger.info(
 					`Egg spawned | channel=${channel.id} eggMessage=${msg.id} golden=${isGolden}`
