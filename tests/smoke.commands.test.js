@@ -1272,6 +1272,41 @@ test("spawn smoke: non-owner admin cannot spawn", async () => {
 	assert.equal(messageChannel.sentPayloads.length, 0);
 });
 
+test("spawn smoke: owner must wait 10 seconds between spawns", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	process.env.CHANNEL = "spawn-chan";
+	const spawnChannel = createChannel("spawn-chan");
+	const messageChannel = createChannel("msg-chan");
+	let persistCalls = 0;
+	const spawnCommand = loadModuleWithMocks(SPAWN_COMMAND_PATH, {
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+	const client = {
+		channels: { fetch: async () => spawnChannel },
+		cooldown: Date.now(),
+		egg: {
+			id: "",
+			followupId: "",
+			isGolden: false,
+			claimColor: "",
+		},
+		persistEggRuntimeState: async () => {
+			persistCalls += 1;
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel: messageChannel,
+	};
+
+	await spawnCommand.run(client, message);
+
+	assert.equal(spawnChannel.sentPayloads.length, 0);
+	assert.equal(persistCalls, 0);
+	assert.equal(messageChannel.sentPayloads.length, 1);
+	assert.match(messageChannel.sentPayloads[0], /^Please wait \d+s before spawning another egg\.$/);
+});
+
 test("spawn smoke: owner can spawn and stale previous egg fetch is tolerated", async () => {
 	process.env.BOT_OWNER_IDS = "admin-user-1";
 	process.env.CHANNEL = "spawn-chan";

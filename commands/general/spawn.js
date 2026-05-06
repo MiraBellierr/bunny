@@ -19,10 +19,24 @@ const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
 const { isBotOwner } = require("../../utils/auth");
 const { pickRandomClaimColor, getClaimPromptText } = require("../../utils/claimPassphrase");
 
+const SPAWN_COOLDOWN_MS = 10 * 1000;
+
 module.exports = {
 	name: "spawn",
 	run: async (client, message) => {
 		if (!isBotOwner(message?.author?.id)) return;
+		if (
+			Number.isFinite(client.cooldown) &&
+			Date.now() - client.cooldown < SPAWN_COOLDOWN_MS
+		) {
+			const remainingSeconds = Math.ceil(
+				(SPAWN_COOLDOWN_MS - (Date.now() - client.cooldown)) / 1000
+			);
+			await message.channel.send(
+				`Please wait ${remainingSeconds}s before spawning another egg.`
+			);
+			return;
+		}
 		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
 			await message.channel.send(
 				"A claim quiz is currently active. Finish it before spawning a new egg."
@@ -56,6 +70,7 @@ module.exports = {
 		client.egg.followupId = msg2.id;
 		client.egg.isGolden = isGolden;
 		client.egg.claimColor = claimColor;
+		client.cooldown = Date.now();
 		await client.persistEggRuntimeState?.();
 		logger.info(
 			`Egg manually spawned | user=${message.author.id} channel=${channel.id} eggMessage=${spawnEgg.id} golden=${isGolden}`

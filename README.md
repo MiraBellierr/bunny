@@ -64,7 +64,7 @@ Runtime tuning note:
 
 - Spawn rate starts at `3%` (`client.egg.rate = 3`).
 - Spawn checks happen from activity in the configured `CHANNEL`.
-- There is a spawn cooldown of `5` seconds between spawn attempts.
+- There is a spawn cooldown of `10` seconds between spawn attempts.
 - Spawn chance is always the configured spawn rate (`0-100`).
 - Golden egg roll chance default is `0.03` (3%).
 

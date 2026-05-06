@@ -19,6 +19,7 @@ const logger = require("../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../utils/egg");
 const { pickRandomClaimColor, getClaimPromptText } = require("../utils/claimPassphrase");
 let before = "";
+const SPAWN_COOLDOWN_MS = 10 * 1000;
 
 module.exports = async (client, message) => {
 	if (!message.guild) return;
@@ -64,8 +65,6 @@ module.exports = async (client, message) => {
 		}
 	}
 
-	const timer = 1000 * 5;
-
 	if (message.channel.id === process.env.CHANNEL) {
 		if (!client.egg.stats) {
 			client.egg.stats = {
@@ -83,7 +82,10 @@ module.exports = async (client, message) => {
 			? Math.min(100, Math.max(0, client.egg.baseRate))
 			: Math.min(100, Math.max(0, Number(client.egg.rate) || 0));
 
-		if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
+		if (
+			!Number.isFinite(client.cooldown) ||
+			Date.now() - client.cooldown >= SPAWN_COOLDOWN_MS
+		) {
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 			const random = Math.random() * 100;
 			logger.info(`Egg roll check | random=${random} baseRate=${baseRate}`);
