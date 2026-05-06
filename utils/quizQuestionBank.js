@@ -114,6 +114,16 @@ Amber is the Knights of Favonius' only?|Outrider|Knight|Swordsman|Archer
 How many members does Benny's Adventure Team have?|1|2|3|4
 In Jean's Story Quest, "Leo Minor Chapter," what is the name of Margaret's lost cat?|Prince|Leo|Pinch|Whiskers
 Which of the Fatui Harbingers is Childe?|The Eleventh|The Tenth|The Twelfth|The Thirteenth
+What is the main purpose of moisturizer?|To hydrate and protect the skin|To remove makeup|To curl eyelashes|To change skin color
+Which product is usually applied first in a basic skincare routine?|Cleanser|Sunscreen|Foundation|Lipstick
+What does SPF protect your skin from?|UV rays from the sun|Dust|Sweat|Makeup stains
+What is foundation mainly used for?|To even out the skin tone|To clean the face|To grow eyelashes|To remove dark circles permanently
+Which makeup product is commonly used to add color to the cheeks?|Blush|Mascara|Eyeliner|Primer
+What is the purpose of primer?|To prepare the skin before makeup|To remove sunscreen|To wash makeup brushes|To darken the eyebrows
+Which skincare product is commonly used to remove dead skin cells?|Exfoliator|Lip balm|Toner|Concealer
+What should you use to remove makeup before sleeping?|Cleanser|Mascara|Eyeliner|Foundation
+What is mascara used for?|To make eyelashes look longer or fuller|To color the lips|To even out skin tone|To remove makeup
+Which product helps makeup last longer after application?|Setting spray|Toner|Cleanser|Face wash
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
