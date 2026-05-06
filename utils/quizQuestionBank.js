@@ -35,7 +35,7 @@ What was the first planet discovered with the use of a telescope?|Uranus|Jupiter
 What letter is a protractor shaped like?|D|F|L|V
 In the Bible, what were the Ten Commandments first written on?|Two tablets of stone|Birth bark|Parchment made of sheep skin|A wax cylinder
 How long does it take light to travel from the Sun to the Earth?|About 8 minutes|It's instantaneous|About 11 days|2 or 3 months, depending on the time of year
-Is the U.S. Congress unicameral or bicameral?|Bicameral|Unicameral|Tricameral|Quadcameral
+Is the U.S. Congress unicameral or bicameral?|Bicameral|Unicameral
 Is it really true that some Amazonian rainforest tribes would collect the shrunken heads of their enemies?|Yes, it's true|No, it's a myth|Only in the movies|Only in video games
 When did Mahatma Gandhi die?|1948|1961|1975|1997
 Has Toronto ever hosted the Olympics?|No|Yes
