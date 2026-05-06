@@ -16,7 +16,6 @@ const STATS_COMMAND_PATH = path.join(ROOT, "commands/general/stats.js");
 const INTERACTION_EVENT_PATH = path.join(ROOT, "events/interactionCreate.js");
 const AUTH_UTIL_PATH = path.join(ROOT, "utils/auth.js");
 const EGG_RUNTIME_STATE_UTIL_PATH = path.join(ROOT, "utils/eggRuntimeState.js");
-const { getEffectiveSpawnRate } = require("../utils/spawnRate");
 const { CLAIM_COLOR_OPTIONS } = require("../utils/claimPassphrase");
 
 const FUNCTIONS_MODULE_PATH = require.resolve(path.join(ROOT, "utils/functions.js"));
@@ -963,12 +962,13 @@ test("reset smoke: confirm step truncates database when pending confirmation exi
 	assert.equal(channel.sentPayloads[1], "Database reset");
 });
 
-test("rate smoke: no args returns current rate and exits", async () => {
+test("rate smoke: no args returns spawn rate and exits", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	const channel = createChannel("chan-1");
 	const rateCommand = loadModuleWithMocks(RATE_COMMAND_PATH, {});
 	const client = {
 		egg: {
+			baseRate: 15,
 			rate: 15,
 		},
 	};
@@ -979,9 +979,31 @@ test("rate smoke: no args returns current rate and exits", async () => {
 
 	await rateCommand.run(client, message, []);
 
+	assert.equal(client.egg.baseRate, 15);
 	assert.equal(client.egg.rate, 15);
 	assert.equal(channel.sentPayloads.length, 1);
 	assert.equal(channel.sentPayloads[0], "The spawn rate: 15%");
+});
+
+test("rate smoke: no args prefers explicit configured spawn rate over current rate", async () => {
+	process.env.BOT_OWNER_IDS = "owner-1";
+	const channel = createChannel("chan-1");
+	const rateCommand = loadModuleWithMocks(RATE_COMMAND_PATH, {});
+	const client = {
+		egg: {
+			baseRate: 12,
+			rate: 6,
+		},
+	};
+	const message = {
+		author: { id: "owner-1" },
+		channel,
+	};
+
+	await rateCommand.run(client, message, []);
+
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(channel.sentPayloads[0], "The spawn rate: 12%");
 });
 
 test("rate smoke: values are clamped between 0 and 100", async () => {
@@ -999,10 +1021,12 @@ test("rate smoke: values are clamped between 0 and 100", async () => {
 	};
 
 	await rateCommand.run(client, message, ["250"]);
+	assert.equal(client.egg.baseRate, 100);
 	assert.equal(client.egg.rate, 100);
 	assert.equal(channel.sentPayloads[0], "Successfully changed a spawn rate to 100%!");
 
 	await rateCommand.run(client, message, ["-7"]);
+	assert.equal(client.egg.baseRate, 0);
 	assert.equal(client.egg.rate, 0);
 	assert.equal(channel.sentPayloads[1], "Successfully changed a spawn rate to 0%!");
 });
@@ -1023,6 +1047,7 @@ test("rate smoke: invalid values do not change state", async () => {
 
 	await rateCommand.run(client, message, ["not-a-number"]);
 
+	assert.equal(client.egg.baseRate, undefined);
 	assert.equal(client.egg.rate, 42);
 	assert.equal(channel.sentPayloads.length, 0);
 });
@@ -1043,6 +1068,7 @@ test("rate smoke: decimal values are supported", async () => {
 
 	await rateCommand.run(client, message, ["0.025"]);
 
+	assert.equal(client.egg.baseRate, 0.025);
 	assert.equal(client.egg.rate, 0.025);
 	assert.equal(channel.sentPayloads.length, 1);
 	assert.equal(channel.sentPayloads[0], "Successfully changed a spawn rate to 0.025%!");
@@ -1660,43 +1686,4 @@ test("stats smoke: invalid counters are clamped to zero", async () => {
 	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[1].value, "0");
 	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[2].value, "0% (0/0)");
 	assert.equal(channel.sentPayloads[0].embeds[0].data.fields[3].value, "0 (0% of messages, 0% of eggs)");
-});
-
-test("spawn rate smoke: activity lowers effective rate", () => {
-	process.env.DYNAMIC_SPAWN_RATE = "true";
-	process.env.DYNAMIC_RATE_TARGET_MESSAGES = "30";
-	process.env.DYNAMIC_RATE_MIN_MULTIPLIER = "0.5";
-	process.env.DYNAMIC_RATE_MAX_MULTIPLIER = "2";
-
-	const effectiveRate = getEffectiveSpawnRate({
-		baseRate: 6,
-		activityCount: 120,
-	});
-
-	assert.equal(effectiveRate, 3);
-});
-
-test("spawn rate smoke: low activity raises effective rate", () => {
-	process.env.DYNAMIC_SPAWN_RATE = "true";
-	process.env.DYNAMIC_RATE_TARGET_MESSAGES = "30";
-	process.env.DYNAMIC_RATE_MIN_MULTIPLIER = "0.5";
-	process.env.DYNAMIC_RATE_MAX_MULTIPLIER = "2";
-
-	const effectiveRate = getEffectiveSpawnRate({
-		baseRate: 4,
-		activityCount: 5,
-	});
-
-	assert.equal(effectiveRate, 8);
-});
-
-test("spawn rate smoke: decimal rates are preserved", () => {
-	process.env.DYNAMIC_SPAWN_RATE = "false";
-
-	const effectiveRate = getEffectiveSpawnRate({
-		baseRate: 0.025,
-		activityCount: 500,
-	});
-
-	assert.equal(effectiveRate, 0.025);
 });

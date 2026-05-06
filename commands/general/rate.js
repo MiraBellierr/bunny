@@ -16,19 +16,36 @@
 
 const { canManageBot } = require("../../utils/auth");
 
+const clampRate = (value) => Math.min(100, Math.max(0, value));
+
+const getSpawnRate = (client) => {
+	const explicitBaseRate = Number.parseFloat(client?.egg?.baseRate);
+	if (Number.isFinite(explicitBaseRate)) {
+		return clampRate(explicitBaseRate);
+	}
+
+	const legacyRate = Number.parseFloat(client?.egg?.rate);
+	if (Number.isFinite(legacyRate)) {
+		return clampRate(legacyRate);
+	}
+
+	return 0;
+};
+
 module.exports = {
 	name: "rate",
 	run: async (client, message, args) => {
 		if (!canManageBot(message)) return;
 
 		if (!args[0]) {
-			return message.channel.send(`The spawn rate: ${client.egg.rate}%`);
+			return message.channel.send(`The spawn rate: ${getSpawnRate(client)}%`);
 		}
 
 		const parsedRate = Number.parseFloat(args[0]);
 		if (!Number.isFinite(parsedRate)) return;
 
-		const clampedRate = Math.min(100, Math.max(0, parsedRate));
+		const clampedRate = clampRate(parsedRate);
+		client.egg.baseRate = clampedRate;
 		client.egg.rate = clampedRate;
 
 		message.channel.send(`Successfully changed a spawn rate to ${clampedRate}%!`);

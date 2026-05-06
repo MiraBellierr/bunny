@@ -60,11 +60,11 @@ client.resetConfirmation = null;
 client.egg = {
 	id: "",
 	followupId: "",
+	baseRate: 3,
 	rate: 3,
 	drop: "",
 	isGolden: false,
 	claimColor: "",
-	activityTimestamps: [],
 	claimStreak: {
 		userId: "",
 		count: 0,

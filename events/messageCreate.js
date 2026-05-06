@@ -18,7 +18,6 @@ const { PermissionsBitField } = require("discord.js");
 const logger = require("../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../utils/egg");
 const { pickRandomClaimColor, getClaimPromptText } = require("../utils/claimPassphrase");
-const { getActivityWindowMs, getEffectiveSpawnRate } = require("../utils/spawnRate");
 let before = "";
 
 module.exports = async (client, message) => {
@@ -80,31 +79,16 @@ module.exports = async (client, message) => {
 			void client.persistEggRuntimeState?.();
 		}
 
-		const now = Date.now();
-		const activityWindowMs = getActivityWindowMs();
-		const activityTimestamps = Array.isArray(client.egg.activityTimestamps)
-			? client.egg.activityTimestamps
-			: [];
-
-		activityTimestamps.push(now);
-		client.egg.activityTimestamps = activityTimestamps.filter(
-			(timestamp) => timestamp >= now - activityWindowMs
-		);
-
-		const activityCount = client.egg.activityTimestamps.length;
-		const effectiveRate = getEffectiveSpawnRate({
-			baseRate: client.egg.rate,
-			activityCount,
-		});
+		const baseRate = Number.isFinite(client.egg.baseRate)
+			? Math.min(100, Math.max(0, client.egg.baseRate))
+			: Math.min(100, Math.max(0, Number(client.egg.rate) || 0));
 
 		if (client.cooldown === null || timer - (Date.now() - client.cooldown) < 1) {
 			const channel = await client.channels.fetch(process.env.CHANNEL);
 			const random = Math.random() * 100;
-			logger.info(
-				`Egg roll check | random=${random} baseRate=${client.egg.rate} effectiveRate=${effectiveRate} activity=${activityCount}`
-			);
+			logger.info(`Egg roll check | random=${random} baseRate=${baseRate}`);
 
-			if (before !== message.author.id && random < effectiveRate) {
+			if (before !== message.author.id && random < baseRate) {
 				if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
 					logger.info(
 						`Egg spawn skipped | reason=active_claim_quiz quizUser=${client.egg.pendingQuiz.userId} quizEgg=${client.egg.pendingQuiz.eggId}`

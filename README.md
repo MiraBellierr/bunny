@@ -30,7 +30,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
 | `<prefix>spawn` | Bot manager | Manually spawns a new egg. |
 | `<prefix>ben <user> [reason]` | Bot manager | Sends a fake ban message only (does not ban anyone). |
-| `<prefix>rate [0-100]` | Bot manager | Shows or sets base spawn rate percent (decimals supported). |
+| `<prefix>rate [0-100]` | Bot manager | Shows or sets spawn rate percent (decimals supported). |
 | `<prefix>config` | Bot owner | Shows current golden chance and streak tier settings. |
 | `<prefix>config golden <0-1>` | Bot owner | Sets `GOLDEN_EGG_CHANCE` at runtime. |
 | `<prefix>config streak <n>` | Bot owner | Sets `CLAIM_STREAK_TIER_SIZE` at runtime (minimum `1`). |
@@ -62,12 +62,10 @@ Runtime tuning note:
 
 ## Spawn Rules
 
-- Base spawn rate starts at `3%` (`client.egg.rate = 3`).
+- Spawn rate starts at `3%` (`client.egg.rate = 3`).
 - Spawn checks happen from activity in the configured `CHANNEL`.
 - There is a spawn cooldown of `5` seconds between spawn attempts.
-- Dynamic spawn rate can scale up/down based on message activity:
-  - Defaults: 300-second window, target 30 messages, multiplier clamped to `0.75-2`.
-  - Effective rate is clamped to `0-100`.
+- Spawn chance is always the configured spawn rate (`0-100`).
 - Golden egg roll chance default is `0.03` (3%).
 
 ## Quick Start
@@ -100,11 +98,6 @@ BOT_OWNER_IDS=123456789012345678,987654321098765432
 # Optional tuning
 GOLDEN_EGG_CHANCE=0.03
 CLAIM_STREAK_TIER_SIZE=5
-DYNAMIC_SPAWN_RATE=true
-DYNAMIC_RATE_WINDOW_SECONDS=300
-DYNAMIC_RATE_TARGET_MESSAGES=30
-DYNAMIC_RATE_MIN_MULTIPLIER=0.75
-DYNAMIC_RATE_MAX_MULTIPLIER=2
 ```
 
 ### 4) Run
@@ -125,11 +118,6 @@ If Bunny boots correctly, it logs in and starts watching messages for egg spawn 
 | `BOT_OWNER_IDS` | No | Empty | Comma/space-separated user IDs with manager access. |
 | `GOLDEN_EGG_CHANCE` | No | `0.03` | Float from `0` to `1`. Values are clamped. |
 | `CLAIM_STREAK_TIER_SIZE` | No | `5` | Claims required per streak bonus tier. Minimum is `1`. |
-| `DYNAMIC_SPAWN_RATE` | No | `true` | Set `false` to disable activity-based scaling. |
-| `DYNAMIC_RATE_WINDOW_SECONDS` | No | `300` | Activity sampling window length. |
-| `DYNAMIC_RATE_TARGET_MESSAGES` | No | `30` | Activity target used for multiplier calculation. |
-| `DYNAMIC_RATE_MIN_MULTIPLIER` | No | `0.75` | Lower multiplier clamp. |
-| `DYNAMIC_RATE_MAX_MULTIPLIER` | No | `2` | Upper multiplier clamp. |
 
 ## Dev Commands
 
@@ -161,8 +149,7 @@ npm run format:check
 ### "Eggs never spawn"
 
 - Confirm `CHANNEL` is the channel where members are chatting.
-- Check base rate with `<prefix>rate`.
-- If activity is extremely high, dynamic scaling may reduce effective spawn chance.
+- Check spawn rate with `<prefix>rate`.
 
 ### "Reset did not run"
 
