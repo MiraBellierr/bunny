@@ -1,7 +1,7 @@
 const CLAIM_COLOR_OPTIONS = [
 	"lightsalmon", "salmon", "darksalmon", "lightcoral", "indianred", "crimson", "firebrick", "red", "darkred", // red
 	"coral", "tomato", "orangered", "gold", "orange", "darkorange", // orange
-	"lightyellow", "lemonchiffon", "lightgoldenrodyellow", "papayawhip", "moccasin", "peachpuff", "	palegoldenrod", "khaki", "darkkhaki", "yellow", // yellow
+	"lightyellow", "lemonchiffon", "lightgoldenrodyellow", "papayawhip", "moccasin", "peachpuff", "palegoldenrod", "khaki", "darkkhaki", "yellow", // yellow
 	"lawngreen", "chartreuse", "limegreen", "lime", "forestgreen", "green", "darkgreen", "greenyellow", "yellowgreen", "springgreen", "mediumspringgreen", "lightgreen", "palegreen", "darkseagreen", "mediumseagreen", "seagreen", "olive", "darkolivegreen", "olivedrab", // green
 	"lightcyan", "cyan", "aqua", "aquamarine", "mediumaquamarine", "paleturquoise", "turquoise", "mediumturquoise", "darkturquoise", "	lightseagreen", "cadetblue", "darkcyan", "teal", // cyan
 	"powderblue", "lightblue", "lightskyblue", "skyblue", "deepskyblue", "lightsteelblue", "dodgerblue", "cornflowerblue", "steelblue", "royalblue", "blue", "mediumblue", "darkblue", "navy", "midnightblue", "mediumslateblue", "slateblue", "darkslateblue", // blue
