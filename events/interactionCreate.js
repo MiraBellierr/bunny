@@ -7,6 +7,7 @@ const {
 	clearActiveEggState,
 	cleanupEggMessages,
 	applyPenaltyWithZeroFloor,
+	resetClaimStreakForUser,
 	resolvePendingQuizAsIncorrect,
 } = require("../utils/claimQuiz");
 
@@ -48,6 +49,20 @@ module.exports = async (client, interaction) => {
 		return;
 	}
 
+	const choiceCount =
+		Number.isInteger(pendingQuiz.choiceCount) && pendingQuiz.choiceCount > 0
+			? pendingQuiz.choiceCount
+			: 4;
+	if (parsed.choiceIndex >= choiceCount) {
+		await interaction
+			.reply({
+				content: "That answer option is not available for this quiz.",
+				ephemeral: true,
+			})
+			.catch(() => null);
+		return;
+	}
+
 	await interaction.deferUpdate().catch(() => null);
 	clearPendingQuizTimer(client);
 
@@ -70,6 +85,7 @@ module.exports = async (client, interaction) => {
 			pendingQuiz.userId,
 			pendingQuiz.totalClaimedEggs
 		);
+		resetClaimStreakForUser(client, pendingQuiz.userId);
 	}
 
 	await interaction.message.edit({ components: [] }).catch(() => null);

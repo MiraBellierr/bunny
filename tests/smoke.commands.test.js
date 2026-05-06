@@ -21,6 +21,7 @@ const { CLAIM_COLOR_OPTIONS } = require("../utils/claimPassphrase");
 const FUNCTIONS_MODULE_PATH = require.resolve(path.join(ROOT, "utils/functions.js"));
 const EGG_SCHEMA_MODULE_PATH = require.resolve(path.join(ROOT, "database/schemas/egg.js"));
 const EGG_MODULE_PATH = require.resolve(path.join(ROOT, "utils/egg.js"));
+const CLAIM_QUIZ_UTIL_MODULE_PATH = require.resolve(path.join(ROOT, "utils/claimQuiz.js"));
 const EGG_RUNTIME_STATE_SCHEMA_MODULE_PATH = require.resolve(
 	path.join(ROOT, "database/schemas/eggRuntimeState.js")
 );
@@ -515,6 +516,74 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 	assert.ok(client.egg.claimLock.expiresAt >= client.egg.pendingQuiz.expiresAt);
 });
 
+test("claim smoke: top-2 quiz supports two-choice questions", async () => {
+	process.env.CHANNEL = "chan-1";
+	const channel = createChannel("chan-1");
+	let incrementCallCount = 0;
+	const realClaimQuiz = require(CLAIM_QUIZ_UTIL_MODULE_PATH);
+
+	const claimCommand = loadModuleWithMocks(CLAIM_COMMAND_PATH, {
+		[FUNCTIONS_MODULE_PATH]: {
+			getUserData: async () => ({ get: () => 0 }),
+		},
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => {
+					incrementCallCount += 1;
+				},
+				findAll: async () => [
+					{
+						get: () => "user-1",
+					},
+					{
+						get: () => "user-2",
+					},
+				],
+			},
+		},
+		[CLAIM_QUIZ_UTIL_MODULE_PATH]: {
+			...realClaimQuiz,
+			pickRandomQuizQuestion: () => ({
+				prompt: "Is this a two-choice question?",
+				choices: ["Yes", "No"],
+				correctIndex: 0,
+			}),
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		channels: { fetch: async () => channel },
+		egg: {
+			id: "egg-top2-2",
+			followupId: "followup-top2-2",
+			drop: "",
+			claimColor: "magenta",
+			isGolden: false,
+			claimLock: null,
+			claimStreak: {
+				userId: "",
+				count: 0,
+			},
+			pendingQuiz: null,
+		},
+	};
+	const message = {
+		id: "msg-claim-top2-2",
+		author: { id: "user-1" },
+		member: "<@user-1>",
+		channel,
+	};
+
+	await claimCommand.run(client, message, ["magenta"]);
+
+	assert.equal(incrementCallCount, 0);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(channel.sentPayloads[0].components[0].components.length, 2);
+	assert.equal(client.egg.pendingQuiz.choiceCount, 2);
+	assert.equal(client.egg.pendingQuiz.correctIndex, 0);
+});
+
 test("interaction smoke: correct quiz answer awards eggs and clears active egg state", async () => {
 	const channel = createChannel("chan-1");
 	let incrementPayload = null;
@@ -658,7 +727,7 @@ test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", 
 				expiresAt: Date.now() + 5000,
 			},
 			claimStreak: {
-				userId: "user-9",
+				userId: "user-1",
 				count: 9,
 			},
 			pendingQuiz: {
@@ -700,6 +769,8 @@ test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", 
 	assert.equal(client.egg.pendingQuiz, null);
 	assert.equal(client.egg.claimLock, null);
 	assert.equal(client.egg.claimColor, "");
+	assert.equal(client.egg.claimStreak.userId, "");
+	assert.equal(client.egg.claimStreak.count, 0);
 	assert.match(channel.sentPayloads[0].content, /answered incorrectly/);
 	assert.match(channel.sentPayloads[0].content, /`-2` eggs/);
 });
@@ -811,6 +882,8 @@ test("interaction smoke: timed-out quiz keeps question window and removes button
 	assert.equal(client.egg.pendingQuiz, null);
 	assert.equal(client.egg.claimLock, null);
 	assert.equal(client.egg.claimColor, "");
+	assert.equal(client.egg.claimStreak.userId, "user-9");
+	assert.equal(client.egg.claimStreak.count, 9);
 	assert.equal(persisted, true);
 	assert.equal(replyPayload?.ephemeral, true);
 	assert.match(replyPayload?.content || "", /Time is up/);
@@ -901,6 +974,92 @@ test("interaction smoke: only the claimant can answer the quiz", async () => {
 	assert.equal(channel.sentPayloads.length, 0);
 	assert.equal(replyPayload?.ephemeral, true);
 	assert.match(replyPayload?.content || "", /Only the claimant can answer/);
+});
+
+test("interaction smoke: unavailable choice index is rejected for two-choice quiz", async () => {
+	const channel = createChannel("chan-1");
+	let incrementCallCount = 0;
+	let decrementCallCount = 0;
+	let replyPayload = null;
+	let deferUpdateCount = 0;
+
+	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => {
+					incrementCallCount += 1;
+				},
+				findOne: async () => ({ get: () => 10 }),
+				decrement: async () => {
+					decrementCallCount += 1;
+				},
+			},
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		egg: {
+			id: "egg-quiz-4",
+			followupId: "followup-quiz-4",
+			drop: "",
+			isGolden: false,
+			claimColor: "magenta",
+			claimLock: {
+				token: "lock-quiz-4",
+				eggId: "egg-quiz-4",
+				expiresAt: Date.now() + 5000,
+			},
+			claimStreak: {
+				userId: "",
+				count: 0,
+			},
+			pendingQuiz: {
+				token: "token-quiz-4",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-4",
+				eggId: "egg-quiz-4",
+				followupId: "followup-quiz-4",
+				claimedIsGolden: false,
+				totalClaimedEggs: 3,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				choiceCount: 2,
+				correctIndex: 0,
+				expiresAt: Date.now() + 30000,
+				lockToken: "lock-quiz-4",
+			},
+		},
+		persistEggRuntimeState: async () => {},
+	};
+	const interaction = {
+		isButton: () => true,
+		customId: "claimquiz:token-quiz-4:3",
+		user: { id: "user-1" },
+		channel,
+		message: {
+			edit: async () => {},
+		},
+		deferUpdate: async () => {
+			deferUpdateCount += 1;
+		},
+		reply: async (payload) => {
+			replyPayload = payload;
+		},
+		update: async () => {},
+	};
+
+	await interactionHandler(client, interaction);
+
+	assert.equal(incrementCallCount, 0);
+	assert.equal(decrementCallCount, 0);
+	assert.equal(deferUpdateCount, 0);
+	assert.equal(client.egg.pendingQuiz.userId, "user-1");
+	assert.equal(client.egg.claimLock.token, "lock-quiz-4");
+	assert.equal(replyPayload?.ephemeral, true);
+	assert.match(replyPayload?.content || "", /not available/);
 });
 
 test("reset smoke: requires confirmation before truncating database", async () => {

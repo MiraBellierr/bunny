@@ -106,10 +106,10 @@ module.exports = {
 						`${formatQuizPrompt(quizQuestion)}\n\nTime remaining: ${quizCountdown}`
 					);
 				const buttonRow = new ActionRowBuilder().addComponents(
-					QUIZ_BUTTON_LABELS.map((label, index) =>
+					quizQuestion.choices.map((_, index) =>
 						new ButtonBuilder()
 							.setCustomId(buildQuizButtonCustomId(quizToken, index))
-							.setLabel(label)
+							.setLabel(QUIZ_BUTTON_LABELS[index])
 							.setStyle(ButtonStyle.Primary)
 					)
 				);
@@ -131,6 +131,7 @@ module.exports = {
 					streakBonus: rewardContext.streakBonus,
 					nextStreakCount: rewardContext.nextStreakCount,
 					shouldTrackStreak: rewardContext.shouldTrackStreak,
+					choiceCount: quizQuestion.choices.length,
 					correctIndex: quizQuestion.correctIndex,
 					expiresAt: quizExpiresAt,
 					lockToken,

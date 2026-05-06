@@ -15,7 +15,7 @@ What is a pomelo?|The largest citrus fruit|A breed of dog|An old-fashioned punch
 Who killed Greedo?|Han Solo|Hannibal Lecter|Hermione Granger|Hercules
 Are giant pandas a type of bear?|Yes|No|Only on Tuesdays|Only in the summer
 How many points is the letter X worth in English-language Scrabble?|8|None|11|5
-Are women required by law to wear headscarves in Iran?|Yes|No|Only in rural areas|Only during the month of Ramadan
+Are women required by law to wear headscarves in Iran?|Yes|No
 What is taxidermy?|The art of stuffing animal remains for display|Another word for tax evasion|Classification of species into categories| The artistic trimming of hedges
 Where would you be most likely to see an epitaph?|On a tombstone|At the bottom of a page|At a zoo|On a boat
 What famous book did Marie Kondo write?|The Life-Changing Magic of Tidying Up|The Amazing Art of Going to the Bathroom|Eating Cheese: Why You Should Never Do It|The Simple Act of Making Breakfast
@@ -38,7 +38,7 @@ How long does it take light to travel from the Sun to the Earth?|About 8 minutes
 Is the U.S. Congress unicameral or bicameral?|Bicameral|Unicameral|Tricameral|Quadcameral
 Is it really true that some Amazonian rainforest tribes would collect the shrunken heads of their enemies?|Yes, it's true|No, it's a myth|Only in the movies|Only in video games
 When did Mahatma Gandhi die?|1948|1961|1975|1997
-Has Toronto ever hosted the Olympics?|No|Yes, in 1976|Yes, in 1988|Yes, in 2010
+Has Toronto ever hosted the Olympics?|No|Yes
 Which of these noble ranks is highest?|Duke|Baron|Earl|Marquis
 The U.S. state of New Jersey is named after Jersey. But what is Jersey?|A British island off the coast of France|A Dutch province|A Native American tribe|There are multiple theories - no one is sure
 Does Mars have any moons?|Yes|No|Only during certain times of the year|Only in the southern hemisphere
@@ -80,7 +80,7 @@ What's the brightest object in the night sky, other than the moon?|Venus|Mars|Ju
 What is a gremlin?|A creature which tampers with machinery|A clay monster|A graverobber|A small bearded creature which lives underground
 Which of these is NOT a Nordic country?|Netherlands|Denmark|Norway|Sweden
 Who owns the North Pole?|No one|Canada|Russia|United Kingdom
-Have humans ever measured a 10.0 earthquake?|No|Yes, in California|Maybe|Yes, in Chile
+Have humans ever measured a 10.0 earthquake?|No|Yes
 Which of these is NOT a type of boat?|Dungaree|Catamaran|Galleon|Junk
 Which of these periods of time is the longest?|Millisecond|Microsecond|Nanosecond|Cocosecond
 What is a "grand jeté"?|A ballet jump where the dancer does splits in the air|A geyser|A very large hot air balloon or blimp|A type of French pastry
@@ -92,6 +92,28 @@ What is a shibboleth?|A word that only people in a certain group can pronounce c
 Which of these words means "complicated"?|Byzantine|Frank|Germane|Ottoman
 What is Nostradamus known for?|His predictions|His height|His inventions|His poems
 How many people have walked on the moon?|12|1|2|0
+In what year were the first Winter Olympic Games held?|1924|1954|1890|1974
+Which city gave its name to a culinary specialty consisting of cooking a fillet of beef in puff pastry stuffed with foie gras?|Wellington|Washington|Canberra|Dublin
+Which of the following is NOT a fruit?|Rhubarb|Tomatoes|Avocados|Buddha's hand
+Which of the following languages has the longest alphabet in the world?|Khmer|Russian|Japanese|Hindi
+Which zodiac sign is represented by a fish?|Pisces|Cancer|Scorpio|Aquarius
+What is the name of the Pokémon Meltan evolves into?|Melmetal|Melmeltan|Meltantal|Melemetal
+Which generation is Cranidos from?|Generation 4|Generation 6|Generation 5|Generation 2
+What Pokémon does Seel evolve into?|Dewgong|Lapras|Sealeo|Walrein
+Which one of these forms is not one of Deoxys's?|Health Form|Defense Form|Speed Form|Attack Form
+How does Gloom evolve into Bellossom?|Sun Stone|Levels|Trading to another player|Leaf Stone
+In which of these games are Glameow and Purugly?|Pearl|Platinum|Emerald|Sapphire
+Which color combo does Shiny Aggron possess?|Blue and Beige|Purple and Beige|Gray and Black|Yellow and Blue
+Which classification is Masquerain?|Eyeball Pokémon|Camouflage Pokémon|Masquerade Pokémon|Disguise Pokémon
+Which plant is Victreebel based on?|Pitcher plant|Venus Fly Trap|Corpse Lily|Tacca Catrieri
+At what level does Venonat evolve into Venomoth?|31|25|20|16
+Which two types are Fletchling?|Normal-Flying|Fire-Flying|Normal-Fire|Flying-Fairy
+Which of these characters ISN'T obtained for free?|Razor|Kaeya|Barbara|Xiangling
+Who runs the Wangsheng Funeral Parlour?|Hu Tao|Zhongli|Baizhu|Ningguang
+Amber is the Knights of Favonius' only?|Outrider|Knight|Swordsman|Archer
+How many members does Benny's Adventure Team have?|1|2|3|4
+In Jean's Story Quest, "Leo Minor Chapter," what is the name of Margaret's lost cat?|Prince|Leo|Pinch|Whiskers
+Which of the Fatui Harbingers is Childe?|The Eleventh|The Tenth|The Twelfth|The Thirteenth
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
@@ -100,15 +122,16 @@ const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
 	.filter(Boolean)
 	.map((line) => {
 		const parts = line.split("|").map((part) => part.trim());
-		const [prompt, answer, wrong1, wrong2, wrong3] = parts;
-		if (!prompt || !answer || !wrong1 || !wrong2 || !wrong3) {
+		const [prompt, answer, ...wrongAnswers] = parts;
+		const sanitizedWrongAnswers = wrongAnswers.filter(Boolean);
+		if (!prompt || !answer || sanitizedWrongAnswers.length < 1) {
 			return null;
 		}
 
 		return {
 			prompt,
 			answer,
-			wrongAnswers: [wrong1, wrong2, wrong3],
+			wrongAnswers: sanitizedWrongAnswers,
 		};
 	})
 	.filter(Boolean);

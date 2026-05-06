@@ -168,6 +168,18 @@ const applyPenaltyWithZeroFloor = async (userId, penaltyEggs) => {
 	return deductedEggs;
 };
 
+const resetClaimStreakForUser = (client, userId) => {
+	if (!client?.egg?.claimStreak || client.egg.claimStreak.userId !== userId) {
+		return false;
+	}
+
+	client.egg.claimStreak = {
+		userId: "",
+		count: 0,
+	};
+	return true;
+};
+
 const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 	const pendingQuiz = client.egg.pendingQuiz;
 	if (!pendingQuiz) {
@@ -184,6 +196,8 @@ const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 		pendingQuiz.userId,
 		pendingQuiz.totalClaimedEggs
 	);
+	const streakEnded =
+		reason !== "timeout" && resetClaimStreakForUser(client, pendingQuiz.userId);
 	const channel = await client.channels.fetch(pendingQuiz.channelId).catch(() => null);
 	if (channel) {
 		const quizMessage = await channel.messages.fetch(pendingQuiz.quizMessageId).catch(() => null);
@@ -206,6 +220,7 @@ const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 	return {
 		pendingQuiz,
 		deductedEggs,
+		streakEnded,
 	};
 };
 
@@ -226,5 +241,6 @@ module.exports = {
 	clearActiveEggState,
 	cleanupEggMessages,
 	applyPenaltyWithZeroFloor,
+	resetClaimStreakForUser,
 	resolvePendingQuizAsIncorrect,
 };
