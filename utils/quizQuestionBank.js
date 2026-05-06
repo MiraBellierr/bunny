@@ -124,6 +124,35 @@ Which skincare product is commonly used to remove dead skin cells?|Exfoliator|Li
 What should you use to remove makeup before sleeping?|Cleanser|Mascara|Eyeliner|Foundation
 What is mascara used for?|To make eyelashes look longer or fuller|To color the lips|To even out skin tone|To remove makeup
 Which product helps makeup last longer after application?|Setting spray|Toner|Cleanser|Face wash
+What is the first Pokémon listed in the Pokédex?|Bulbasaur|Charmander|Squirtle|Pikachu
+What type of Pokémon is Pikachu?|Electric|Normal|Fairy|Fighting
+What is “Pokémon” short for?|Pocket Monsters|Party Monster|Powerful Companions|Pocket Money
+What 3 types are used for the starter Pokémon?|Grass, Fire, and Water|Psychic, Dark, and Fairy|Ground, Grass, and Bug|Fighting, Flying, and Rock
+How many Pokémon were introduced in the first generation?|151|100|126|175
+What Pokémon is known for evolving into different forms using stones?|Eevee|Castform|Wurmple|Rotom
+What is the highest level a Pokémon can reach?|100|75|101|150
+What Pokéball always catches a Pokémon without failing?|Master Ball|Ultra Ball|Great Ball|GS Ball
+What are the 2 main legendary Pokémon from the first generation?|Mew and Mewtwo|Lugia and Ho-Oh|Kyogre and Groudon|Palkia and Dialga
+How many standard Pokémon types are there as of Generation 9?|18|21|15|20
+What type is super-effective against Ghost?|Ghost|Poison|Psychic|Normal
+What attack is Lugia's signature move?|Aeroblast|Hydro Pump|Roar of Time|Rain Dance
+What is the name of Bulbasaur's final evolution?|Venusaur|Florasaur|Megasaur|Ivysaur
+How many Pokémon generations have there been as of now?|9|7|11|13
+What is someone who catches Pokémon called?|Trainer|Researcher|PokéRanger|Monster Hunter
+What Pokémon was created first?|Rhydon|Clefairy|Bulbasaur|Pikachu
+What color is a shiny Charizard?|Black|Purple|Green|Blue
+What item do you need to evolve Electabuzz into Electivire?|Electrizer|Buzz Battery|Charging Cable|Upgrade
+How many forms does Unown have?|28|20|26|30
+What Pokémon doesn't have any weaknesses?|Eelektross|Gengar|Arceus|Sableye
+What item prevents a Pokémon from evolving?|Everstone|Blank Plate|Clear Amulet|Linking Cord
+What Pokémon is the heaviest?|Cosmeon|Wailord|Steelix|Groudon
+What Pokémon can breed with any other Pokémon except legendaries?|Ditto|Porygon|Mimikyu|Manaphy
+How many Pokémon are there as of Generation 9?|1,025|1,000|1,250|1,510
+What is Pikachu's signature attack?|Volt Tackle|Thunderbolt|Electro Ball|Volt Switch
+What level does Dragonair evolve into Dragonite?|55|40|45|60
+What Pokémon does NOT have a Gigantamax form?|Eiscue|Orbeetle|Coalossal|Drednaw
+Which Pokémon is NOT an evolution of Eevee?|Lumineon|Leafeon|Glaceon|Sylveon
+What Berry wakes up a Pokémon if it's asleep?|Chesto Berry|Oran Berry|Cheri Berry|Sitrus Berry
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()
