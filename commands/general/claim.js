@@ -17,11 +17,6 @@
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 const logger = require("../../utils/logger");
-const {
-	normalizeClaimColor,
-	isValidClaimColor,
-	pickRandomClaimColor,
-} = require("../../utils/claimPassphrase");
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
 const {
 	TOP_QUIZ_RANK_LIMIT,
@@ -44,7 +39,7 @@ const CLAIM_LOCK_MS = 10 * 1000;
 module.exports = {
 	name: "claim",
 	category: "general",
-	run: async (client, message, args = []) => {
+	run: async (client, message, _args = []) => {
 		const channel = await client.channels.fetch(process.env.CHANNEL);
 
 		if (message.author.id === client.egg.drop) return;
@@ -61,16 +56,6 @@ module.exports = {
 		const activeLock = client.egg.claimLock;
 		if (activeLock && activeLock.eggId === client.egg.id && Date.now() < activeLock.expiresAt)
 			return;
-		let requiredClaimColor = normalizeClaimColor(client.egg.claimColor);
-		if (!isValidClaimColor(requiredClaimColor)) {
-			requiredClaimColor = pickRandomClaimColor();
-			client.egg.claimColor = requiredClaimColor;
-			await client.persistEggRuntimeState?.();
-		}
-		const submittedClaimColor = normalizeClaimColor(args[0]);
-		if (submittedClaimColor !== requiredClaimColor) {
-			return;
-		}
 
 		const lockToken = `${message.id}:${Date.now()}`;
 		const claimedEggId = client.egg.id;
@@ -101,7 +86,7 @@ module.exports = {
 				const quizExpiresAt = Date.now() + CLAIM_QUIZ_TIMEOUT_MS;
 				const quizCountdown = `<t:${Math.floor(quizExpiresAt / 1000)}:R>`;
 				const quizEmbed = new EmbedBuilder()
-					.setTitle("Top 2 Quiz Challenge")
+					.setTitle(`Top ${TOP_QUIZ_RANK_LIMIT} Quiz Challenge`)
 					.setDescription(
 						`${formatQuizPrompt(quizQuestion)}\n\nTime remaining: ${quizCountdown}`
 					);

@@ -22,14 +22,12 @@ const isValidClaimColor = (value) => CLAIM_COLOR_OPTIONS.includes(normalizeClaim
 const pickRandomClaimColor = () =>
 	CLAIM_COLOR_OPTIONS[Math.floor(Math.random() * CLAIM_COLOR_OPTIONS.length)];
 
-const getClaimCommand = (prefix = ".", claimColor = "") =>
-	`\`${prefix}claim ${normalizeClaimColor(claimColor)}\``;
+const getClaimCommand = (prefix = ".") => `\`${prefix}claim\``;
 
-const getClaimPromptText = (prefix = ".", claimColor = "") =>
-	`type ${getClaimCommand(prefix, claimColor)} to claim it!`;
+const getClaimPromptText = (prefix = ".") => `type ${getClaimCommand(prefix)} to claim it!`;
 
-const getClaimGuidanceText = (prefix = ".", claimColor = "") =>
-	`To claim this egg, type ${getClaimCommand(prefix, claimColor)}.`;
+const getClaimGuidanceText = (prefix = ".") =>
+	`To claim this egg, type ${getClaimCommand(prefix)}.`;
 
 module.exports = {
 	CLAIM_COLOR_OPTIONS,

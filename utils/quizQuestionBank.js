@@ -108,12 +108,6 @@ Which classification is Masquerain?|Eyeball Pokémon|Camouflage Pokémon|Masquer
 Which plant is Victreebel based on?|Pitcher plant|Venus Fly Trap|Corpse Lily|Tacca Catrieri
 At what level does Venonat evolve into Venomoth?|31|25|20|16
 Which two types are Fletchling?|Normal-Flying|Fire-Flying|Normal-Fire|Flying-Fairy
-Which of these characters ISN'T obtained for free?|Razor|Kaeya|Barbara|Xiangling
-Who runs the Wangsheng Funeral Parlour?|Hu Tao|Zhongli|Baizhu|Ningguang
-Amber is the Knights of Favonius' only?|Outrider|Knight|Swordsman|Archer
-How many members does Benny's Adventure Team have?|1|2|3|4
-In Jean's Story Quest, "Leo Minor Chapter," what is the name of Margaret's lost cat?|Prince|Leo|Pinch|Whiskers
-Which of the Fatui Harbingers is Childe?|The Eleventh|The Tenth|The Twelfth|The Thirteenth
 What is the main purpose of moisturizer?|To hydrate and protect the skin|To remove makeup|To curl eyelashes|To change skin color
 Which product is usually applied first in a basic skincare routine?|Cleanser|Sunscreen|Foundation|Lipstick
 What does SPF protect your skin from?|UV rays from the sun|Dust|Sweat|Makeup stains

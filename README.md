@@ -9,11 +9,11 @@ Current version: `v1.1.1`
 ## What This Bot Does
 
 - Spawns eggs in one configured channel when people are active.
-- Lets users claim eggs for points with `<prefix>claim <shown-color>` where the shown color is one of `indigo`, `magenta`, or `seagrass`.
+- Lets users claim eggs for points with `<prefix>claim`.
 - Tracks a leaderboard with `<prefix>lb`.
 - Occasionally spawns a golden egg for bigger rewards.
 - Supports streak bonus rewards for repeat claimers.
-- Requires top 2 leaderboard players to answer a quiz button question before claim resolution.
+- Requires top 5 leaderboard players to answer a quiz button question before claim resolution.
 - Persists active egg + streak runtime state across restarts.
 - Includes `stats` tracking for messages, egg spawns, and golden spawn ratio.
 - Includes admin/owner controls for manual spawn, rate/tuning changes, edits, and reset.
@@ -24,7 +24,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 
 | Command | Access | What it does |
 | --- | --- | --- |
-| `<prefix>claim <shown-color>` | Everyone | Claims the active egg with the exact color shown on spawn; current #1 and #2 players must pass a quiz question first. |
+| `<prefix>claim` | Everyone | Claims the active egg; current #1 to #5 players must pass a quiz question first. |
 | `<prefix>lb` | Everyone | Shows the egg leaderboard (top 10, plus your rank highlight when present). |
 | `<prefix>stats` | Everyone | Shows tracked message count, egg spawns, and golden spawn ratios. |
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
@@ -54,9 +54,9 @@ Runtime tuning note:
 - Normal egg claim reward: random `1-10` eggs.
 - Golden egg claim reward: random `11-20` eggs.
 - Streak bonus: `+floor(streakCount / CLAIM_STREAK_TIER_SIZE)`.
-- Top 2 leaderboard gating: multiple-choice quiz (100+ local question bank) before reward.
-- Quiz timeout for top-2 claims: `15` seconds. No answer in time counts as incorrect.
-- Wrong top-2 answer penalty: deduct the same amount as that claim reward, clamped at `0` total eggs.
+- Top 5 leaderboard gating: multiple-choice quiz (100+ local question bank) before reward.
+- Quiz timeout for top-5 claims: `15` seconds. No answer in time counts as incorrect.
+- Wrong top-5 answer penalty: deduct the same amount as that claim reward, clamped at `0` total eggs.
 - Default streak tier size: `5`.
 - Claim lock: duplicate claims are throttled for `10` seconds per active egg to avoid race spam.
 

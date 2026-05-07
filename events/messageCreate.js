@@ -113,7 +113,7 @@ module.exports = async (client, message) => {
 				const claimColor = pickRandomClaimColor();
 				const msg = await channel.send(getEggMessage(isGolden));
 				const msg2 = await channel.send(
-					`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Person below is cute.`
+					`-# ${getClaimPromptText(process.env.PREFIX)} Person below is cute.`
 				);
 
 				if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {

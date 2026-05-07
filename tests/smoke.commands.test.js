@@ -152,7 +152,7 @@ test("claim smoke: successful claim increments points, clears egg state, and sen
 	assert.match(channel.sentPayloads[0].content, /has claimed the egg!/);
 });
 
-test("claim smoke: wrong anti-abuse color keyword is ignored silently", async () => {
+test("claim smoke: extra claim argument is ignored", async () => {
 	process.env.CHANNEL = "chan-1";
 	process.env.PREFIX = ".";
 	const channel = createChannel("chan-1");
@@ -192,8 +192,8 @@ test("claim smoke: wrong anti-abuse color keyword is ignored silently", async ()
 
 	await claimCommand.run(client, message, ["magenta"]);
 
-	assert.equal(incrementCallCount, 0);
-	assert.equal(channel.sentPayloads.length, 0);
+	assert.equal(incrementCallCount, 1);
+	assert.equal(channel.sentPayloads.length, 1);
 });
 
 test("claim smoke: active lock blocks duplicate claim attempts", async () => {
@@ -450,7 +450,7 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 	assert.match(channel.sentPayloads[0].content, /`\+1` eggs/);
 });
 
-test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", async () => {
+test("claim smoke: top-5 claimant is quiz-gated before rewards are applied", async () => {
 	process.env.CHANNEL = "chan-1";
 	const channel = createChannel("chan-1");
 	let incrementCallCount = 0;
@@ -470,6 +470,15 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 					{
 						get: () => "user-2",
 					},
+					{
+						get: () => "user-3",
+					},
+					{
+						get: () => "user-4",
+					},
+					{
+						get: () => "user-5",
+					},
 				],
 			},
 		},
@@ -479,8 +488,8 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 	const client = {
 		channels: { fetch: async () => channel },
 		egg: {
-			id: "egg-top2-1",
-			followupId: "followup-top2-1",
+			id: "egg-top5-1",
+			followupId: "followup-top5-1",
 			drop: "",
 			claimColor: "magenta",
 			isGolden: false,
@@ -493,9 +502,9 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 		},
 	};
 	const message = {
-		id: "msg-claim-top2-1",
-		author: { id: "user-1" },
-		member: "<@user-1>",
+		id: "msg-claim-top5-1",
+		author: { id: "user-5" },
+		member: "<@user-5>",
 		channel,
 	};
 
@@ -505,18 +514,19 @@ test("claim smoke: top-2 claimant is quiz-gated before rewards are applied", asy
 	assert.equal(channel.sentPayloads.length, 1);
 	assert.equal(Array.isArray(channel.sentPayloads[0].components), true);
 	assert.equal(channel.sentPayloads[0].components.length, 1);
+	assert.equal(channel.sentPayloads[0].embeds[0].data.title, "Top 5 Quiz Challenge");
 	assert.match(
 		channel.sentPayloads[0].embeds[0].data.description,
 		/Time remaining: <t:\d+:R>$/
 	);
-	assert.equal(client.egg.pendingQuiz.userId, "user-1");
-	assert.equal(client.egg.pendingQuiz.eggId, "egg-top2-1");
-	assert.equal(client.egg.pendingQuiz.followupId, "followup-top2-1");
+	assert.equal(client.egg.pendingQuiz.userId, "user-5");
+	assert.equal(client.egg.pendingQuiz.eggId, "egg-top5-1");
+	assert.equal(client.egg.pendingQuiz.followupId, "followup-top5-1");
 	assert.equal(typeof client.egg.pendingQuiz.token, "string");
 	assert.ok(client.egg.claimLock.expiresAt >= client.egg.pendingQuiz.expiresAt);
 });
 
-test("claim smoke: top-2 quiz supports two-choice questions", async () => {
+test("claim smoke: top-5 quiz supports two-choice questions", async () => {
 	process.env.CHANNEL = "chan-1";
 	const channel = createChannel("chan-1");
 	let incrementCallCount = 0;
@@ -538,6 +548,15 @@ test("claim smoke: top-2 quiz supports two-choice questions", async () => {
 					{
 						get: () => "user-2",
 					},
+					{
+						get: () => "user-3",
+					},
+					{
+						get: () => "user-4",
+					},
+					{
+						get: () => "user-5",
+					},
 				],
 			},
 		},
@@ -555,8 +574,8 @@ test("claim smoke: top-2 quiz supports two-choice questions", async () => {
 	const client = {
 		channels: { fetch: async () => channel },
 		egg: {
-			id: "egg-top2-2",
-			followupId: "followup-top2-2",
+			id: "egg-top5-2",
+			followupId: "followup-top5-2",
 			drop: "",
 			claimColor: "magenta",
 			isGolden: false,
@@ -569,7 +588,7 @@ test("claim smoke: top-2 quiz supports two-choice questions", async () => {
 		},
 	};
 	const message = {
-		id: "msg-claim-top2-2",
+		id: "msg-claim-top5-2",
 		author: { id: "user-1" },
 		member: "<@user-1>",
 		channel,
@@ -1511,7 +1530,7 @@ test("spawn smoke: owner can spawn and stale previous egg fetch is tolerated", a
 	assert.equal(persistCalls, 1);
 	assert.equal(spawnChannel.sentPayloads.length, 2);
 	assert.equal(spawnChannel.sentPayloads[0], "golden-egg-message");
-	assert.match(spawnChannel.sentPayloads[1], /type `\.claim [a-z]+` to claim it!/);
+	assert.match(spawnChannel.sentPayloads[1], /type `\.claim` to claim it!/);
 	assert.equal(messageChannel.sentPayloads[0], "Successfully spawned an egg!");
 });
 
