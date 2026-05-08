@@ -13,14 +13,14 @@ What is the name of this symbol: ¶|Pilcrow|Biltong|Fermata|Interrobang
 In the nursery rhyme, how many blackbirds were baked in a pie?|24|4|11|99
 What is a pomelo?|The largest citrus fruit|A breed of dog|An old-fashioned punching bag|A type of hat
 Who killed Greedo?|Han Solo|Hannibal Lecter|Hermione Granger|Hercules
-Are giant pandas a type of bear?|Yes|No|Only on Tuesdays|Only in the summer
+Are giant pandas a type of bear?|Yes|No
 How many points is the letter X worth in English-language Scrabble?|8|None|11|5
 Are women required by law to wear headscarves in Iran?|Yes|No
 What is taxidermy?|The art of stuffing animal remains for display|Another word for tax evasion|Classification of species into categories| The artistic trimming of hedges
 Where would you be most likely to see an epitaph?|On a tombstone|At the bottom of a page|At a zoo|On a boat
 What famous book did Marie Kondo write?|The Life-Changing Magic of Tidying Up|The Amazing Art of Going to the Bathroom|Eating Cheese: Why You Should Never Do It|The Simple Act of Making Breakfast
 What is the title of the rock song that starts "Jeremiah was a bullfrog"?|Joy to the World|I Can't Go For That (No Can Do)|Sympathy for the Devil|Whole Lotta Love
-Are there any fish that have teeth?|Yes|No|Only in the ocean|Only in freshwater
+Are there any fish that have teeth?|Yes|No
 Who is Jamie Oliver?|A celebrity chef|A former member of the boy band "One Direction"|A Shakespearean actor|An underwear model
 What is Times New Roman?|A font|A mathematical function|A newspaper|A religious movement
 Which of the following is a portmanteau?|Brunch|A man, a plan, a canal. Panama!|Jumbo shrimp|Flamingo dancing
@@ -36,7 +36,7 @@ What letter is a protractor shaped like?|D|F|L|V
 In the Bible, what were the Ten Commandments first written on?|Two tablets of stone|Birth bark|Parchment made of sheep skin|A wax cylinder
 How long does it take light to travel from the Sun to the Earth?|About 8 minutes|It's instantaneous|About 11 days|2 or 3 months, depending on the time of year
 Is the U.S. Congress unicameral or bicameral?|Bicameral|Unicameral
-Is it really true that some Amazonian rainforest tribes would collect the shrunken heads of their enemies?|Yes, it's true|No, it's a myth|Only in the movies|Only in video games
+Is it really true that some Amazonian rainforest tribes would collect the shrunken heads of their enemies?|Yes, it's true|No, it's a myth
 When did Mahatma Gandhi die?|1948|1961|1975|1997
 Has Toronto ever hosted the Olympics?|No|Yes
 Which of these noble ranks is highest?|Duke|Baron|Earl|Marquis
