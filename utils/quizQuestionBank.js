@@ -147,6 +147,21 @@ What level does Dragonair evolve into Dragonite?|55|40|45|60
 What Pokémon does NOT have a Gigantamax form?|Eiscue|Orbeetle|Coalossal|Drednaw
 Which Pokémon is NOT an evolution of Eevee?|Lumineon|Leafeon|Glaceon|Sylveon
 What Berry wakes up a Pokémon if it's asleep?|Chesto Berry|Oran Berry|Cheri Berry|Sitrus Berry
+Always tormented by headaches. It uses psychic powers, but it is not known if it intends to do so.|Psyduck|Clamperl|Alakazam|Klinklang
+It learns martial arts that use punches and kicks. Every several years, its old feathers burn off, and new, supple feathers grow back in their place.|Blaziken|Torkoal|Talonflame|Hawlucha
+Although it always pretends to be a tree, its composition appears to be closer to a rock than a plant.|Sudowoodo|Shiftry|Exeggutor|Graveler
+The combination of garbage bags and industrial waste caused the chemical reaction that created this Pokémon.|Trubbish|Grimer|Toxapex|Weezing
+Very lazy. Just eats and sleeps. As its rotund bulk builds, it becomes steadily more slothful.|Snorlax|Slakoth|Komala|Drowzee
+It sprays a vile-smelling fluid from the tip of its tail to attack. Its range is over 160 feet.|Skuntank|Mankey|Smeargle|Goomy
+Its milk is packed with nutrition, making it the ultimate beverage for the sick or weary.|Miltank|Vanillish|Tauros|Alcremie
+It is believed to have shaped Regirock, Regice, and Registeel out of clay, ice, and magma.|Regigigas|Arceus|Giratina|Mewtwo
+It has sound-generating organs all over its body. It communicates with others by adjusting the tone and volume of the cries it emits.|Exploud|Jigglypuff|Meleotta|Noivern
+The three horns that extend from its beak attest to its power. The leader has the biggest horns.|Empoleon|Fearow|Moltres|Braviary
+It swings its long snout around playfully, but because it is so strong, that can be dangerous.|Phanpy|Cufant|Nosepass|Houndoom
+Within its beak, its internal gas ignites, explosively launching seeds with enough power to pulverize boulders.|Toucannon|Staraptor|Ho-Oh|Fletchinder
+Its nose is always running. It sniffs the snot back up because the mucus provides the raw material for its moves.|Cubchoo|Snorunt|Cryogonal|Froslass
+Under a full moon, this Pokémon likes to mimic the shadows of people and laugh at their fright.|Gengar|Duskull|Darkrai|Marshadow
+It is among the largest of all Pokémon. It herds prey in a pack, then swallows the massed prey in one gulp.|Wailord|Swalot|Steelix|Kyogre
 `;
 
 const GENERAL_KNOWLEDGE_QUESTION_BANK = QUESTION_BANK_ROWS.trim()

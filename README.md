@@ -55,7 +55,7 @@ Runtime tuning note:
 - Golden egg claim reward: random `11-20` eggs.
 - Streak bonus: `+floor(streakCount / CLAIM_STREAK_TIER_SIZE)`.
 - Top 5 leaderboard gating: multiple-choice quiz (100+ local question bank) before reward.
-- Quiz timeout for top-5 claims: `15` seconds. No answer in time counts as incorrect.
+- Quiz timeout for top-5 claims: `25` seconds. No answer in time counts as incorrect.
 - Wrong top-5 answer penalty: deduct the same amount as that claim reward, clamped at `0` total eggs.
 - Default streak tier size: `5`.
 - Claim lock: duplicate claims are throttled for `10` seconds per active egg to avoid race spam.
