@@ -1,5 +1,5 @@
 const QUESTION_BANK_ROWS = `
-What is the longest that an elephant has ever lived? (That we know of)|86 years|17 years|49 years|142 years
+What is the longest that an elephant has ever lived? (That we know of)|109 years|86 years|49 years|142 years
 How many rings are on the Olympic flag?|5|None|4|7
 What is a tarsier?|A primate|A bird|A lizard|A fish
 How did Spider-Man get his powers?|Bitten by a radioactive spider|Born with them|Military experiment gone awry|Woke up with them after a strange dream
