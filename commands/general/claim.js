@@ -17,9 +17,19 @@
 const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 const logger = require("../../utils/logger");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
 const { resolveClaimColor } = require("../../utils/claimPassphrase");
 const {
+	TOP_QUIZ_RANK_LIMIT,
+	CLAIM_QUIZ_TIMEOUT_MS,
+	QUIZ_BUTTON_LABELS,
 	calculateClaimRewardContext,
+	isUserInTopRanks,
+	pickRandomQuizQuestion,
+	formatQuizPrompt,
+	createQuizToken,
+	buildQuizButtonCustomId,
+	clearPendingQuizTimer,
 	clearActiveEggState,
 	cleanupEggMessages,
 	resolvePendingQuizAsIncorrect,
@@ -75,6 +85,63 @@ module.exports = {
 				claimedIsDroppedEgg,
 				claimedIsGolden,
 			});
+			const requiresQuiz = await isUserInTopRanks(message.author.id, TOP_QUIZ_RANK_LIMIT);
+
+			if (requiresQuiz) {
+				const quizQuestion = pickRandomQuizQuestion();
+				const quizToken = createQuizToken();
+				const quizExpiresAt = Date.now() + CLAIM_QUIZ_TIMEOUT_MS;
+				const quizCountdown = `<t:${Math.floor(quizExpiresAt / 1000)}:R>`;
+				const quizEmbed = new EmbedBuilder()
+					.setTitle(`Top ${TOP_QUIZ_RANK_LIMIT} Quiz Challenge`)
+					.setDescription(
+						`${formatQuizPrompt(quizQuestion)}\n\nTime remaining: ${quizCountdown}`
+					);
+				const buttonRow = new ActionRowBuilder().addComponents(
+					quizQuestion.choices.map((_, index) =>
+						new ButtonBuilder()
+							.setCustomId(buildQuizButtonCustomId(quizToken, index))
+							.setLabel(QUIZ_BUTTON_LABELS[index])
+							.setStyle(ButtonStyle.Primary)
+					)
+				);
+				const quizMessage = await message.channel.send({
+					content: `${message.member}, answer correctly to claim this egg.`,
+					embeds: [quizEmbed],
+					components: [buttonRow],
+					allowedMentions: { repliedUser: false, users: [] },
+				});
+				client.egg.pendingQuiz = {
+					token: quizToken,
+					userId: message.author.id,
+					channelId: message.channel.id,
+					quizMessageId: quizMessage.id,
+					eggId: claimedEggId,
+					followupId: claimedFollowupId,
+					claimedIsGolden,
+					totalClaimedEggs: rewardContext.totalClaimedEggs,
+					streakBonus: rewardContext.streakBonus,
+					nextStreakCount: rewardContext.nextStreakCount,
+					shouldTrackStreak: rewardContext.shouldTrackStreak,
+					choiceCount: quizQuestion.choices.length,
+					correctIndex: quizQuestion.correctIndex,
+					expiresAt: quizExpiresAt,
+					lockToken,
+				};
+				clearPendingQuizTimer(client);
+				client.egg.pendingQuizTimer = setTimeout(() => {
+					resolvePendingQuizAsIncorrect(client, "timeout").catch((error) => {
+						logger.error("Failed to resolve timed-out claim quiz", error);
+					});
+				}, CLAIM_QUIZ_TIMEOUT_MS);
+				client.egg.claimLock.expiresAt = quizExpiresAt;
+				shouldReleaseLock = false;
+
+				logger.info(
+					`Egg claim gated by quiz | user=${message.author.id} eggMessage=${claimedEggId} quizMessage=${quizMessage.id} reward=${rewardContext.totalClaimedEggs}`
+				);
+				return;
+			}
 			await Egg.increment(
 				{ point: rewardContext.totalClaimedEggs },
 				{ where: { userid: message.author.id } }

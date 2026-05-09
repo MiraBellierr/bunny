@@ -517,6 +517,7 @@ test("claim smoke: claim resolves directly and never creates a quiz", async () =
 				increment: async () => {
 					incrementCallCount += 1;
 				},
+				findAll: async () => [],
 			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
@@ -571,6 +572,7 @@ test("claim smoke: low random roll still awards claim and does not open quiz", a
 				increment: async () => {
 					incrementCallCount += 1;
 				},
+				findAll: async () => [],
 			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
@@ -609,8 +611,7 @@ test("claim smoke: low random roll still awards claim and does not open quiz", a
 	assert.equal(client.egg.pendingQuiz, null);
 });
 
-test("interaction smoke: correct quiz answer awards winner and clears active egg state", async () => {
-	process.env.CLAIM_STREAK_TIER_SIZE = "5";
+test("interaction smoke: correct quiz answer awards eggs and clears active egg state", async () => {
 	const channel = createChannel("chan-1");
 	let incrementPayload = null;
 	let persisted = false;
@@ -630,14 +631,13 @@ test("interaction smoke: correct quiz answer awards winner and clears active egg
 	});
 
 	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({ get: () => 0 }),
-		},
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: {
 				increment: async (...args) => {
 					incrementPayload = args;
 				},
+				findOne: async () => ({ get: () => 0 }),
+				update: async () => {},
 			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
@@ -658,23 +658,26 @@ test("interaction smoke: correct quiz answer awards winner and clears active egg
 			claimStreak: {
 				userId: "",
 				count: 0,
-				},
-				pendingQuiz: {
-					token: "token-quiz-1",
-					channelId: "chan-1",
-					quizMessageId: "quiz-msg-1",
-					eggId: "egg-quiz-1",
-					followupId: "followup-quiz-1",
-					claimedIsGolden: false,
-					claimedIsDroppedEgg: false,
-					correctIndex: 2,
-					expiresAt: Date.now() + 30000,
-					lockToken: "lock-quiz-1",
-					attemptedUserIds: [],
-				},
 			},
-			persistEggRuntimeState: async () => {
-				persisted = true;
+			pendingQuiz: {
+				token: "token-quiz-1",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-1",
+				eggId: "egg-quiz-1",
+				followupId: "followup-quiz-1",
+				claimedIsGolden: true,
+				totalClaimedEggs: 4,
+				streakBonus: 1,
+				nextStreakCount: 2,
+				shouldTrackStreak: true,
+				correctIndex: 2,
+				expiresAt: Date.now() + 30000,
+				lockToken: "lock-quiz-1",
+			},
+		},
+		persistEggRuntimeState: async () => {
+			persisted = true;
 		},
 	};
 	const interaction = {
@@ -695,14 +698,12 @@ test("interaction smoke: correct quiz answer awards winner and clears active egg
 		update: async () => {},
 	};
 
-	await withMockedRandomSequence([0], async () => {
-		await interactionHandler(client, interaction);
-	});
+	await interactionHandler(client, interaction);
 
-	assert.deepEqual(incrementPayload[0], { point: 1 });
+	assert.deepEqual(incrementPayload[0], { point: 4 });
 	assert.deepEqual(incrementPayload[1], { where: { userid: "user-1" } });
 	assert.equal(client.egg.claimStreak.userId, "user-1");
-	assert.equal(client.egg.claimStreak.count, 1);
+	assert.equal(client.egg.claimStreak.count, 2);
 	assert.equal(client.egg.id, "");
 	assert.equal(client.egg.followupId, "");
 	assert.equal(client.egg.claimColor, "");
@@ -713,16 +714,82 @@ test("interaction smoke: correct quiz answer awards winner and clears active egg
 	assert.equal(followupDeleteState.deleted, true);
 	assert.equal(persisted, true);
 	assert.equal(deferUpdateCount, 1);
-	assert.equal(channel.sentPayloads.length, 1);
-	assert.match(channel.sentPayloads[0].content, /answered correctly first and claimed/);
+	assert.match(channel.sentPayloads[0].content, /answered correctly and claimed/);
+	assert.match(channel.sentPayloads[1], /Streak bonus: `\+1`/);
 });
 
-test("interaction smoke: wrong quiz answer consumes one attempt and keeps quiz open", async () => {
+test("interaction smoke: correct quiz answer falls back when increment affects zero rows", async () => {
 	const channel = createChannel("chan-1");
-	let incrementCallCount = 0;
-	let deferUpdateCount = 0;
-	let replyPayloads = [];
-	let messageEdited = false;
+	let updatePayload = null;
+	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => [0],
+				findOne: async () => ({ get: () => 7 }),
+				update: async (...args) => {
+					updatePayload = args;
+				},
+			},
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		egg: {
+			id: "egg-quiz-fallback-1",
+			followupId: "followup-quiz-fallback-1",
+			drop: "",
+			isGolden: false,
+			claimColor: "aether",
+			claimLock: null,
+			claimStreak: {
+				userId: "",
+				count: 0,
+			},
+			pendingQuiz: {
+				token: "token-quiz-fallback-1",
+				userId: "user-fallback-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-fallback-1",
+				eggId: "egg-quiz-fallback-1",
+				followupId: "followup-quiz-fallback-1",
+				claimedIsGolden: false,
+				totalClaimedEggs: 1,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				correctIndex: 0,
+				expiresAt: Date.now() + 30000,
+				lockToken: "",
+			},
+		},
+		persistEggRuntimeState: async () => {},
+	};
+	const interaction = {
+		isButton: () => true,
+		customId: "claimquiz:token-quiz-fallback-1:0",
+		user: { id: "user-fallback-1" },
+		channel,
+		message: {
+			edit: async () => {},
+		},
+		deferUpdate: async () => {},
+		reply: async () => {},
+		update: async () => {},
+	};
+
+	await interactionHandler(client, interaction);
+
+	assert.deepEqual(updatePayload?.[0], { point: 8 });
+	assert.deepEqual(updatePayload?.[1], { where: { userid: "user-fallback-1" } });
+	assert.equal(client.egg.pendingQuiz, null);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.match(channel.sentPayloads[0].content, /claimed the egg/);
+});
+
+test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", async () => {
+	const channel = createChannel("chan-1");
+	let decrementPayload = null;
 	channel.messageMap.set("egg-quiz-2", {
 		delete: async () => {},
 	});
@@ -731,13 +798,12 @@ test("interaction smoke: wrong quiz answer consumes one attempt and keeps quiz o
 	});
 
 	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({ get: () => 0 }),
-		},
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: {
-				increment: async () => {
-					incrementCallCount += 1;
+				increment: async () => {},
+				findOne: async () => ({ get: () => 2 }),
+				decrement: async (...args) => {
+					decrementPayload = args;
 				},
 			},
 		},
@@ -759,61 +825,55 @@ test("interaction smoke: wrong quiz answer consumes one attempt and keeps quiz o
 			claimStreak: {
 				userId: "user-1",
 				count: 9,
-				},
-				pendingQuiz: {
-					token: "token-quiz-2",
-					channelId: "chan-1",
-					quizMessageId: "quiz-msg-2",
-					eggId: "egg-quiz-2",
-					followupId: "followup-quiz-2",
-					claimedIsGolden: false,
-					claimedIsDroppedEgg: false,
-					correctIndex: 3,
-					expiresAt: Date.now() + 30000,
-					lockToken: "lock-quiz-2",
-					attemptedUserIds: [],
-				},
 			},
-			persistEggRuntimeState: async () => {},
-		};
+			pendingQuiz: {
+				token: "token-quiz-2",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-2",
+				eggId: "egg-quiz-2",
+				followupId: "followup-quiz-2",
+				claimedIsGolden: false,
+				totalClaimedEggs: 5,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				correctIndex: 3,
+				expiresAt: Date.now() + 30000,
+				lockToken: "lock-quiz-2",
+			},
+		},
+		persistEggRuntimeState: async () => {},
+	};
 	const interaction = {
 		isButton: () => true,
 		customId: "claimquiz:token-quiz-2:1",
 		user: { id: "user-1" },
 		channel,
 		message: {
-			edit: async () => {
-				messageEdited = true;
-			},
+			edit: async () => {},
 		},
-		deferUpdate: async () => {
-			deferUpdateCount += 1;
-		},
-		reply: async (payload) => {
-			replyPayloads.push(payload);
-		},
+		deferUpdate: async () => {},
+		reply: async () => {},
 		update: async () => {},
 	};
 
 	await interactionHandler(client, interaction);
-	await interactionHandler(client, interaction);
 
-	assert.equal(incrementCallCount, 0);
-	assert.equal(messageEdited, false);
-	assert.equal(deferUpdateCount, 0);
-	assert.equal(channel.sentPayloads.length, 0);
-	assert.equal(client.egg.pendingQuiz.token, "token-quiz-2");
-	assert.deepEqual(client.egg.pendingQuiz.attemptedUserIds, ["user-1"]);
-	assert.equal(replyPayloads.length, 2);
-	assert.equal(replyPayloads[0]?.ephemeral, true);
-	assert.equal(Array.isArray(replyPayloads[0]?.components), false);
-	assert.match(replyPayloads[0]?.content || "", /Incorrect/);
-	assert.equal(replyPayloads[1]?.ephemeral, true);
-	assert.match(replyPayloads[1]?.content || "", /already used your one attempt/);
+	assert.deepEqual(decrementPayload[0], { point: 2 });
+	assert.deepEqual(decrementPayload[1], { where: { userid: "user-1" } });
+	assert.equal(client.egg.pendingQuiz, null);
+	assert.equal(client.egg.claimLock, null);
+	assert.equal(client.egg.claimColor, "");
+	assert.equal(client.egg.claimStreak.userId, "");
+	assert.equal(client.egg.claimStreak.count, 0);
+	assert.match(channel.sentPayloads[0].content, /answered incorrectly/);
+	assert.match(channel.sentPayloads[0].content, /`-2` eggs/);
 });
 
-test("interaction smoke: timed-out quiz removes buttons and clears egg", async () => {
+test("interaction smoke: timed-out quiz keeps question window and removes buttons", async () => {
 	const channel = createChannel("chan-1");
+	let decrementPayload = null;
 	let quizButtonsRemoved = false;
 	const eggDeleteState = { deleted: false };
 	const followupDeleteState = { deleted: false };
@@ -838,12 +898,13 @@ test("interaction smoke: timed-out quiz removes buttons and clears egg", async (
 	});
 
 	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({ get: () => 0 }),
-		},
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: {
 				increment: async () => {},
+				findOne: async () => ({ get: () => 3 }),
+				decrement: async (...args) => {
+					decrementPayload = args;
+				},
 			},
 		},
 		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
@@ -865,24 +926,27 @@ test("interaction smoke: timed-out quiz removes buttons and clears egg", async (
 			claimStreak: {
 				userId: "user-9",
 				count: 9,
-				},
-				pendingQuiz: {
-					token: "token-timeout-1",
-					channelId: "chan-1",
-					quizMessageId: "quiz-msg-timeout-1",
-					eggId: "egg-timeout-1",
-					followupId: "followup-timeout-1",
-					claimedIsGolden: false,
-					claimedIsDroppedEgg: false,
-					correctIndex: 2,
-					expiresAt: Date.now() - 1000,
-					lockToken: "lock-timeout-1",
-					attemptedUserIds: [],
-				},
 			},
-			persistEggRuntimeState: async () => {
-			persisted = true;
+			pendingQuiz: {
+				token: "token-timeout-1",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-timeout-1",
+				eggId: "egg-timeout-1",
+				followupId: "followup-timeout-1",
+				claimedIsGolden: false,
+				totalClaimedEggs: 4,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				correctIndex: 2,
+				expiresAt: Date.now() - 1000,
+				lockToken: "lock-timeout-1",
+			},
 		},
+		persistEggRuntimeState: async () => {
+				persisted = true;
+			},
 	};
 	const interaction = {
 		isButton: () => true,
@@ -901,6 +965,8 @@ test("interaction smoke: timed-out quiz removes buttons and clears egg", async (
 
 	await interactionHandler(client, interaction);
 
+	assert.deepEqual(decrementPayload[0], { point: 3 });
+	assert.deepEqual(decrementPayload[1], { where: { userid: "user-1" } });
 	assert.equal(quizButtonsRemoved, true);
 	assert.equal(eggDeleteState.deleted, true);
 	assert.equal(followupDeleteState.deleted, true);
@@ -912,24 +978,24 @@ test("interaction smoke: timed-out quiz removes buttons and clears egg", async (
 	assert.equal(persisted, true);
 	assert.equal(replyPayload?.ephemeral, true);
 	assert.match(replyPayload?.content || "", /Time is up/);
-	assert.match(channel.sentPayloads[0].content, /No one answered correctly in time/);
+	assert.match(channel.sentPayloads[0].content, /did not answer in time/);
 });
 
-test("interaction smoke: any user can answer, then quiz closes for everyone", async () => {
-	process.env.CLAIM_STREAK_TIER_SIZE = "5";
+test("interaction smoke: only the claimant can answer the quiz", async () => {
 	const channel = createChannel("chan-1");
 	let incrementCallCount = 0;
+	let decrementCallCount = 0;
 	let replyPayload = null;
-	let deferUpdateCount = 0;
 
 	const interactionHandler = loadModuleWithMocks(INTERACTION_EVENT_PATH, {
-		[FUNCTIONS_MODULE_PATH]: {
-			getUserData: async () => ({ get: () => 0 }),
-		},
 		[EGG_SCHEMA_MODULE_PATH]: {
 			Egg: {
 				increment: async () => {
 					incrementCallCount += 1;
+				},
+				findOne: async () => ({ get: () => 10 }),
+				decrement: async () => {
+					decrementCallCount += 1;
 				},
 			},
 		},
@@ -951,23 +1017,26 @@ test("interaction smoke: any user can answer, then quiz closes for everyone", as
 			claimStreak: {
 				userId: "",
 				count: 0,
-				},
-				pendingQuiz: {
-					token: "token-quiz-3",
-					channelId: "chan-1",
-					quizMessageId: "quiz-msg-3",
-					eggId: "egg-quiz-3",
-					followupId: "followup-quiz-3",
-					claimedIsGolden: false,
-					claimedIsDroppedEgg: false,
-					correctIndex: 0,
-					expiresAt: Date.now() + 30000,
-					lockToken: "lock-quiz-3",
-					attemptedUserIds: [],
-				},
 			},
-			persistEggRuntimeState: async () => {},
-		};
+			pendingQuiz: {
+				token: "token-quiz-3",
+				userId: "user-1",
+				channelId: "chan-1",
+				quizMessageId: "quiz-msg-3",
+				eggId: "egg-quiz-3",
+				followupId: "followup-quiz-3",
+				claimedIsGolden: false,
+				totalClaimedEggs: 3,
+				streakBonus: 0,
+				nextStreakCount: 1,
+				shouldTrackStreak: true,
+				correctIndex: 0,
+				expiresAt: Date.now() + 30000,
+				lockToken: "lock-quiz-3",
+			},
+		},
+		persistEggRuntimeState: async () => {},
+	};
 	const interaction = {
 		isButton: () => true,
 		customId: "claimquiz:token-quiz-3:0",
@@ -976,9 +1045,7 @@ test("interaction smoke: any user can answer, then quiz closes for everyone", as
 		message: {
 			edit: async () => {},
 		},
-		deferUpdate: async () => {
-			deferUpdateCount += 1;
-		},
+		deferUpdate: async () => {},
 		reply: async (payload) => {
 			replyPayload = payload;
 		},
@@ -986,15 +1053,14 @@ test("interaction smoke: any user can answer, then quiz closes for everyone", as
 	};
 
 	await interactionHandler(client, interaction);
-	await interactionHandler(client, interaction);
 
-	assert.equal(incrementCallCount, 1);
-	assert.equal(deferUpdateCount, 1);
-	assert.equal(client.egg.pendingQuiz, null);
-	assert.equal(client.egg.claimLock, null);
-	assert.equal(channel.sentPayloads.length, 1);
+	assert.equal(incrementCallCount, 0);
+	assert.equal(decrementCallCount, 0);
+	assert.equal(client.egg.pendingQuiz.userId, "user-1");
+	assert.equal(client.egg.claimLock.token, "lock-quiz-3");
+	assert.equal(channel.sentPayloads.length, 0);
 	assert.equal(replyPayload?.ephemeral, true);
-	assert.match(replyPayload?.content || "", /no longer active/);
+	assert.match(replyPayload?.content || "", /Only the claimant can answer/);
 });
 
 test("interaction smoke: unavailable choice index is rejected for two-choice quiz", async () => {
@@ -1081,6 +1147,40 @@ test("interaction smoke: unavailable choice index is rejected for two-choice qui
 	assert.equal(client.egg.claimLock.token, "lock-quiz-4");
 	assert.equal(replyPayload?.ephemeral, true);
 	assert.match(replyPayload?.content || "", /not available/);
+});
+
+test("claim quiz smoke: cleanupEggMessages tolerates sync delete handlers", async () => {
+	let eggDeleted = false;
+	let followupDeleted = false;
+	const channel = {
+		messages: {
+			fetch: async (messageId) => {
+				if (messageId === "egg-sync-1") {
+					return {
+						delete: () => {
+							eggDeleted = true;
+							return true;
+						},
+					};
+				}
+				if (messageId === "followup-sync-1") {
+					return {
+						delete: () => {
+							followupDeleted = true;
+							return true;
+						},
+					};
+				}
+				throw new Error("not found");
+			},
+		},
+	};
+
+	const claimQuizUtils = loadModuleWithMocks(CLAIM_QUIZ_UTIL_MODULE_PATH, {});
+	await claimQuizUtils.cleanupEggMessages(channel, "egg-sync-1", "followup-sync-1");
+
+	assert.equal(eggDeleted, true);
+	assert.equal(followupDeleted, true);
 });
 
 test("reset smoke: requires confirmation before truncating database", async () => {
@@ -1589,7 +1689,7 @@ test("spawn smoke: existing active egg is deleted before respawn", async () => {
 	assert.equal(persistCalls, 1);
 });
 
-test("spawn smoke: owner can spawn a quiz challenge instead of an egg", async () => {
+test("spawn smoke: owner low random still spawns an egg", async () => {
 	process.env.BOT_OWNER_IDS = "owner-1";
 	process.env.CHANNEL = "spawn-chan";
 	process.env.PREFIX = ".";
@@ -1626,17 +1726,15 @@ test("spawn smoke: owner can spawn a quiz challenge instead of an egg", async ()
 		await spawnCommand.run(client, message);
 	});
 
-	assert.equal(client.egg.id, "");
-	assert.equal(client.egg.followupId, "");
-	assert.equal(client.egg.claimColor, "");
-	assert.equal(client.egg.isGolden, false);
-	assert.equal(client.egg.pendingQuiz?.quizMessageId, "m1");
-	assert.equal(typeof client.egg.pendingQuiz?.token, "string");
-	assert.equal(spawnChannel.sentPayloads.length, 1);
-	assert.equal(Array.isArray(spawnChannel.sentPayloads[0].components), true);
-	assert.match(spawnChannel.sentPayloads[0].content, /First correct answer claims the egg/);
+	assert.equal(client.egg.id, "m1");
+	assert.equal(client.egg.followupId, "m2");
+	assert.equal(client.egg.isGolden, true);
+	assert.equal(CLAIM_COLOR_OPTIONS.includes(client.egg.claimColor), true);
+	assert.equal(spawnChannel.sentPayloads.length, 2);
+	assert.equal(spawnChannel.sentPayloads[0], "golden-egg-message");
+	assert.match(spawnChannel.sentPayloads[1], /type `\.claim .+` to claim it!/);
 	assert.equal(persistCalls, 1);
-	assert.equal(messageChannel.sentPayloads[0], "Successfully spawned a quiz challenge!");
+	assert.equal(messageChannel.sentPayloads[0], "Successfully spawned an egg!");
 });
 
 test("spawn smoke: owner cannot spawn while claim quiz is active", async () => {

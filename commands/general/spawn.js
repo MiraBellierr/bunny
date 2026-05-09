@@ -18,7 +18,6 @@ const logger = require("../../utils/logger");
 const { rollGoldenEgg, getEggMessage } = require("../../utils/egg");
 const { isBotOwner } = require("../../utils/auth");
 const { pickRandomClaimColor, getClaimPromptText } = require("../../utils/claimPassphrase");
-const { shouldSpawnQuizChallenge, startSpawnQuizChallenge } = require("../../utils/claimQuiz");
 
 const SPAWN_COOLDOWN_MS = 10 * 1000;
 
@@ -50,31 +49,15 @@ module.exports = {
 		const eggMessage = client.egg.id
 			? await message.channel.messages.fetch(client.egg.id).catch(() => null)
 			: null;
-		if (eggMessage) await eggMessage.delete().catch(() => null);
+		if (eggMessage && typeof eggMessage.delete === "function") {
+			try {
+				await eggMessage.delete();
+			} catch {
+				// ignore stale egg deletion errors
+			}
+		}
 
 		const isGolden = rollGoldenEgg();
-		const shouldSpawnQuiz = shouldSpawnQuizChallenge();
-		if (shouldSpawnQuiz) {
-			const quizStart = await startSpawnQuizChallenge({
-				client,
-				channel,
-				triggerMessage: `${message.member || message.author} spawned a quiz challenge!`,
-				claimedIsGolden: isGolden,
-				claimedIsDroppedEgg: false,
-			});
-			client.egg.id = "";
-			client.egg.followupId = "";
-			client.egg.isGolden = false;
-			client.egg.claimColor = "";
-			client.cooldown = Date.now();
-			await client.persistEggRuntimeState?.();
-			logger.info(
-				`Quiz manually spawned | user=${message.author.id} channel=${channel.id} quizMessage=${quizStart.quizMessage.id} goldenReward=${isGolden}`
-			);
-
-			message.channel.send("Successfully spawned a quiz challenge!");
-			return;
-		}
 		const claimColor = pickRandomClaimColor();
 		const spawnEgg = await channel.send(getEggMessage(isGolden));
 		const msg2 = await channel.send(
@@ -82,8 +65,20 @@ module.exports = {
 		);
 
 		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {
-			await spawnEgg.delete().catch(() => null);
-			await msg2.delete().catch(() => null);
+			if (typeof spawnEgg.delete === "function") {
+				try {
+					await spawnEgg.delete();
+				} catch {
+					// ignore spawn message deletion errors
+				}
+			}
+			if (typeof msg2.delete === "function") {
+				try {
+					await msg2.delete();
+				} catch {
+					// ignore spawn follow-up deletion errors
+				}
+			}
 			await message.channel.send(
 				"Spawn canceled because a claim quiz became active during this request."
 			);
