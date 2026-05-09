@@ -1,12 +1,12 @@
-const { Egg } = require("../database/schemas/egg");
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
 const { rollClaimedEggs } = require("./egg");
 const { GENERAL_KNOWLEDGE_QUESTION_BANK } = require("./quizQuestionBank");
 
 const DEFAULT_STREAK_TIER_SIZE = 5;
-const TOP_QUIZ_RANK_LIMIT = 5;
 const CLAIM_QUIZ_TIMEOUT_MS = 25 * 1000;
 const CLAIM_QUIZ_BUTTON_PREFIX = "claimquiz";
 const QUIZ_BUTTON_LABELS = ["A", "B", "C", "D"];
+const SPAWN_QUIZ_CHANCE = 0.5;
 
 const getClaimStreakTierSize = () => {
 	const parsedTierSize = Number.parseInt(process.env.CLAIM_STREAK_TIER_SIZE || "", 10);
@@ -42,16 +42,6 @@ const calculateClaimRewardContext = ({
 		nextStreakCount,
 		totalClaimedEggs,
 	};
-};
-
-const isUserInTopRanks = async (userId, topRankLimit = TOP_QUIZ_RANK_LIMIT) => {
-	const topUsers = await Egg.findAll({
-		attributes: ["userid"],
-		order: [["point", "DESC"]],
-		limit: topRankLimit,
-	});
-
-	return topUsers.some((row) => row.get("userid") === userId);
 };
 
 const shuffle = (values) => {
@@ -105,6 +95,92 @@ const parseQuizButtonCustomId = (customId = "") => {
 	return { token, choiceIndex };
 };
 
+const shouldSpawnQuizChallenge = () => Math.random() < SPAWN_QUIZ_CHANCE;
+
+const startSpawnQuizChallenge = async ({
+	client,
+	channel,
+	triggerMessage = "A quiz challenge appeared!",
+	eggId = "",
+	followupId = "",
+	claimedIsGolden = false,
+	claimedIsDroppedEgg = false,
+	lockToken = "",
+}) => {
+	const quizQuestion = pickRandomQuizQuestion();
+	const quizToken = createQuizToken();
+	const quizExpiresAt = Date.now() + CLAIM_QUIZ_TIMEOUT_MS;
+	const quizCountdown = `<t:${Math.floor(quizExpiresAt / 1000)}:R>`;
+	const quizEmbed = new EmbedBuilder()
+		.setTitle("Spawn Quiz Challenge")
+		.setDescription(`${formatQuizPrompt(quizQuestion)}\n\nTime remaining: ${quizCountdown}`);
+	const buttonRow = new ActionRowBuilder().addComponents(
+		quizQuestion.choices.map((_, index) =>
+			new ButtonBuilder()
+				.setCustomId(buildQuizButtonCustomId(quizToken, index))
+				.setLabel(QUIZ_BUTTON_LABELS[index])
+				.setStyle(ButtonStyle.Primary)
+		)
+	);
+	const quizMessage = await channel.send({
+		content: `${triggerMessage} First correct answer claims the egg.`,
+		embeds: [quizEmbed],
+		components: [buttonRow],
+		allowedMentions: { repliedUser: false, users: [] },
+	});
+
+	client.egg.pendingQuiz = {
+		token: quizToken,
+		channelId: channel.id,
+		quizMessageId: quizMessage.id,
+		eggId,
+		followupId,
+		claimedIsGolden,
+		claimedIsDroppedEgg,
+		choiceCount: quizQuestion.choices.length,
+		correctIndex: quizQuestion.correctIndex,
+		expiresAt: quizExpiresAt,
+		lockToken,
+		attemptedUserIds: [],
+	};
+	clearPendingQuizTimer(client);
+	client.egg.pendingQuizTimer = setTimeout(() => {
+		resolvePendingQuizAsIncorrect(client, "timeout").catch(() => null);
+	}, CLAIM_QUIZ_TIMEOUT_MS);
+
+	return {
+		quizMessage,
+		quizToken,
+		quizExpiresAt,
+		choiceCount: quizQuestion.choices.length,
+	};
+};
+
+const hasUserAttemptedPendingQuiz = (pendingQuiz, userId) => {
+	if (!pendingQuiz || !userId || !Array.isArray(pendingQuiz.attemptedUserIds)) {
+		return false;
+	}
+
+	return pendingQuiz.attemptedUserIds.includes(userId);
+};
+
+const markUserPendingQuizAttempt = (pendingQuiz, userId) => {
+	if (!pendingQuiz || !userId) {
+		return false;
+	}
+
+	if (!Array.isArray(pendingQuiz.attemptedUserIds)) {
+		pendingQuiz.attemptedUserIds = [];
+	}
+
+	if (pendingQuiz.attemptedUserIds.includes(userId)) {
+		return false;
+	}
+
+	pendingQuiz.attemptedUserIds.push(userId);
+	return true;
+};
+
 const clearPendingQuizTimer = (client) => {
 	if (client?.egg?.pendingQuizTimer) {
 		clearTimeout(client.egg.pendingQuizTimer);
@@ -156,30 +232,6 @@ const cleanupEggMessages = async (channel, eggId, followupId) => {
 	}
 };
 
-const applyPenaltyWithZeroFloor = async (userId, penaltyEggs) => {
-	const userEgg = await Egg.findOne({ where: { userid: userId } });
-	const currentEggs = Number(userEgg?.get("point") || 0);
-	const deductedEggs = Math.max(0, Math.min(currentEggs, penaltyEggs));
-
-	if (deductedEggs > 0) {
-		await Egg.decrement({ point: deductedEggs }, { where: { userid: userId } });
-	}
-
-	return deductedEggs;
-};
-
-const resetClaimStreakForUser = (client, userId) => {
-	if (!client?.egg?.claimStreak || client.egg.claimStreak.userId !== userId) {
-		return false;
-	}
-
-	client.egg.claimStreak = {
-		userId: "",
-		count: 0,
-	};
-	return true;
-};
-
 const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 	const pendingQuiz = client.egg.pendingQuiz;
 	if (!pendingQuiz) {
@@ -192,12 +244,6 @@ const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 		client.egg.claimLock = null;
 	}
 
-	const deductedEggs = await applyPenaltyWithZeroFloor(
-		pendingQuiz.userId,
-		pendingQuiz.totalClaimedEggs
-	);
-	const streakEnded =
-		reason !== "timeout" && resetClaimStreakForUser(client, pendingQuiz.userId);
 	const channel = await client.channels.fetch(pendingQuiz.channelId).catch(() => null);
 	if (channel) {
 		const quizMessage = await channel.messages.fetch(pendingQuiz.quizMessageId).catch(() => null);
@@ -205,42 +251,39 @@ const resolvePendingQuizAsIncorrect = async (client, reason = "incorrect") => {
 			await quizMessage.edit({ components: [] }).catch(() => null);
 		}
 
-		await cleanupEggMessages(channel, pendingQuiz.eggId, pendingQuiz.followupId);
-		await channel.send({
-			content:
-				reason === "timeout"
-					? `<@${pendingQuiz.userId}> did not answer in time and lost \`-${deductedEggs}\` eggs.`
-					: `<@${pendingQuiz.userId}> answered incorrectly and lost \`-${deductedEggs}\` eggs.`,
-			allowedMentions: { repliedUser: false, users: [] },
-		});
+		if (reason === "timeout") {
+			await cleanupEggMessages(channel, pendingQuiz.eggId, pendingQuiz.followupId);
+			await channel.send({
+				content: "No one answered correctly in time. The egg disappeared.",
+				allowedMentions: { repliedUser: false, users: [] },
+			});
+		}
 	}
 
 	await clearActiveEggState(client, pendingQuiz.eggId);
 
 	return {
 		pendingQuiz,
-		deductedEggs,
-		streakEnded,
 	};
 };
 
 module.exports = {
-	TOP_QUIZ_RANK_LIMIT,
 	CLAIM_QUIZ_TIMEOUT_MS,
 	QUIZ_BUTTON_LABELS,
 	getClaimStreakTierSize,
 	calculateClaimRewardContext,
-	isUserInTopRanks,
 	pickRandomQuizQuestion,
 	formatQuizPrompt,
 	createQuizToken,
 	buildQuizButtonCustomId,
 	parseQuizButtonCustomId,
+	shouldSpawnQuizChallenge,
+	startSpawnQuizChallenge,
+	hasUserAttemptedPendingQuiz,
+	markUserPendingQuizAttempt,
 	clearPendingQuizTimer,
 	clearPendingQuizIfExpired,
 	clearActiveEggState,
 	cleanupEggMessages,
-	applyPenaltyWithZeroFloor,
-	resetClaimStreakForUser,
 	resolvePendingQuizAsIncorrect,
 };

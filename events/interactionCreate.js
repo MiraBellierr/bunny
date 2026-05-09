@@ -1,13 +1,15 @@
 const { Egg } = require("../database/schemas/egg");
+const functions = require("../utils/functions");
 const logger = require("../utils/logger");
 const {
 	parseQuizButtonCustomId,
 	CLAIM_QUIZ_TIMEOUT_MS,
+	calculateClaimRewardContext,
+	hasUserAttemptedPendingQuiz,
+	markUserPendingQuizAttempt,
 	clearPendingQuizTimer,
 	clearActiveEggState,
 	cleanupEggMessages,
-	applyPenaltyWithZeroFloor,
-	resetClaimStreakForUser,
 	resolvePendingQuizAsIncorrect,
 } = require("../utils/claimQuiz");
 
@@ -39,16 +41,6 @@ module.exports = async (client, interaction) => {
 		return;
 	}
 
-	if (interaction.user.id !== pendingQuiz.userId) {
-		await interaction
-			.reply({
-				content: "Only the claimant can answer this question.",
-				ephemeral: true,
-			})
-			.catch(() => null);
-		return;
-	}
-
 	const choiceCount =
 		Number.isInteger(pendingQuiz.choiceCount) && pendingQuiz.choiceCount > 0
 			? pendingQuiz.choiceCount
@@ -63,29 +55,48 @@ module.exports = async (client, interaction) => {
 		return;
 	}
 
+	if (hasUserAttemptedPendingQuiz(pendingQuiz, interaction.user.id)) {
+		await interaction
+			.reply({
+				content: "You already used your one attempt for this quiz.",
+				ephemeral: true,
+			})
+			.catch(() => null);
+		return;
+	}
+
+	markUserPendingQuizAttempt(pendingQuiz, interaction.user.id);
+
+	const answeredCorrectly = parsed.choiceIndex === pendingQuiz.correctIndex;
+	if (!answeredCorrectly) {
+		await interaction
+			.reply({
+				content: "You submitted an answer.",
+				ephemeral: true,
+			})
+			.catch(() => null);
+		return;
+	}
+
 	await interaction.deferUpdate().catch(() => null);
 	clearPendingQuizTimer(client);
 
-	let resultDelta = 0;
-	const answeredCorrectly = parsed.choiceIndex === pendingQuiz.correctIndex;
-	if (answeredCorrectly) {
-		await Egg.increment(
-			{ point: pendingQuiz.totalClaimedEggs },
-			{ where: { userid: pendingQuiz.userId } }
-		);
-		if (pendingQuiz.shouldTrackStreak) {
-			client.egg.claimStreak = {
-				userId: pendingQuiz.userId,
-				count: pendingQuiz.nextStreakCount,
-			};
-		}
-		resultDelta = pendingQuiz.totalClaimedEggs;
-	} else {
-		resultDelta = await applyPenaltyWithZeroFloor(
-			pendingQuiz.userId,
-			pendingQuiz.totalClaimedEggs
-		);
-		resetClaimStreakForUser(client, pendingQuiz.userId);
+	await functions.getUserData(Egg, interaction.user);
+	const rewardContext = calculateClaimRewardContext({
+		client,
+		userId: interaction.user.id,
+		claimedIsDroppedEgg: Boolean(pendingQuiz.claimedIsDroppedEgg),
+		claimedIsGolden: Boolean(pendingQuiz.claimedIsGolden),
+	});
+	await Egg.increment(
+		{ point: rewardContext.totalClaimedEggs },
+		{ where: { userid: interaction.user.id } }
+	);
+	if (rewardContext.shouldTrackStreak) {
+		client.egg.claimStreak = {
+			userId: interaction.user.id,
+			count: rewardContext.nextStreakCount,
+		};
 	}
 
 	await interaction.message.edit({ components: [] }).catch(() => null);
@@ -96,28 +107,21 @@ module.exports = async (client, interaction) => {
 		client.egg.claimLock = null;
 	}
 
-	const memberMention = `<@${pendingQuiz.userId}>`;
-	if (answeredCorrectly) {
-		await interaction.channel.send({
-			content: pendingQuiz.claimedIsGolden
-				? `${memberMention} answered correctly and claimed a GOLDEN egg! ✨ \`+${resultDelta}\` eggs`
-				: `${memberMention} answered correctly and claimed the egg! \`+${resultDelta}\` eggs`,
-			allowedMentions: { repliedUser: false, users: [] },
-		});
+	const memberMention = `<@${interaction.user.id}>`;
+	await interaction.channel.send({
+		content: pendingQuiz.claimedIsGolden
+			? `${memberMention} answered correctly first and claimed a GOLDEN egg! ✨ \`+${rewardContext.totalClaimedEggs}\` eggs`
+			: `${memberMention} answered correctly first and claimed the egg! \`+${rewardContext.totalClaimedEggs}\` eggs`,
+		allowedMentions: { repliedUser: false, users: [] },
+	});
 
-		if (pendingQuiz.streakBonus > 0) {
-			await interaction.channel.send(
-				`Streak bonus: \`+${pendingQuiz.streakBonus}\` (streak ${pendingQuiz.nextStreakCount})`
-			);
-		}
-	} else {
-		await interaction.channel.send({
-			content: `${memberMention} answered incorrectly and lost \`-${resultDelta}\` eggs.`,
-			allowedMentions: { repliedUser: false, users: [] },
-		});
+	if (rewardContext.streakBonus > 0) {
+		await interaction.channel.send(
+			`Streak bonus: \`+${rewardContext.streakBonus}\` (streak ${rewardContext.nextStreakCount})`
+		);
 	}
 
 	logger.info(
-		`Egg quiz resolved | user=${pendingQuiz.userId} correct=${answeredCorrectly} delta=${resultDelta} eggMessage=${pendingQuiz.eggId} quizTimeoutMs=${CLAIM_QUIZ_TIMEOUT_MS}`
+		`Egg quiz resolved | winner=${interaction.user.id} delta=${rewardContext.totalClaimedEggs} eggMessage=${pendingQuiz.eggId} quizTimeoutMs=${CLAIM_QUIZ_TIMEOUT_MS}`
 	);
 };
