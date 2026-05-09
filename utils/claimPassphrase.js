@@ -190,9 +190,6 @@ const getClaimCommand = (prefix = ".", claimColor = "") => {
 const getClaimPromptText = (prefix = ".", claimColor = "") =>
 	`type ${getClaimCommand(prefix, claimColor)} to claim it!`;
 
-const getClaimGuidanceText = (prefix = ".", claimColor = "") =>
-	`To claim this egg, type ${getClaimCommand(prefix, claimColor)}.`;
-
 module.exports = {
 	CLAIM_COLOR_OPTIONS,
 	CLAIM_CHARACTER_OPTIONS,
@@ -202,5 +199,4 @@ module.exports = {
 	pickRandomClaimColor,
 	getClaimCommand,
 	getClaimPromptText,
-	getClaimGuidanceText,
 };

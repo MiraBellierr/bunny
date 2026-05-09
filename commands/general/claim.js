@@ -18,7 +18,7 @@ const functions = require("../../utils/functions");
 const { Egg } = require("../../database/schemas/egg");
 const logger = require("../../utils/logger");
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require("discord.js");
-const { getClaimGuidanceText, resolveClaimColor } = require("../../utils/claimPassphrase");
+const { resolveClaimColor } = require("../../utils/claimPassphrase");
 const {
 	TOP_QUIZ_RANK_LIMIT,
 	CLAIM_QUIZ_TIMEOUT_MS,
@@ -62,13 +62,7 @@ module.exports = {
 		if (!expectedClaimColor) return;
 
 		const providedClaimColor = resolveClaimColor(args.join(" "));
-		if (!providedClaimColor || providedClaimColor !== expectedClaimColor) {
-			await message.channel.send({
-				content: getClaimGuidanceText(process.env.PREFIX, expectedClaimColor),
-				allowedMentions: { repliedUser: false, users: [] },
-			});
-			return;
-		}
+		if (!providedClaimColor || providedClaimColor !== expectedClaimColor) return;
 
 		const lockToken = `${message.id}:${Date.now()}`;
 		const claimedEggId = client.egg.id;
