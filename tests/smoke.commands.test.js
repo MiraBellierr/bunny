@@ -118,7 +118,7 @@ test("claim smoke: successful claim increments points, clears egg state, and sen
 			id: "egg-1",
 			followupId: "followup-1",
 			drop: "",
-			claimColor: "indigo",
+			claimColor: "aether",
 			claimLock: null,
 		},
 	};
@@ -133,7 +133,7 @@ test("claim smoke: successful claim increments points, clears egg state, and sen
 	Math.random = () => 0;
 
 	try {
-		await claimCommand.run(client, message, ["indigo"]);
+		await claimCommand.run(client, message, ["aether"]);
 	} finally {
 		Math.random = originalRandom;
 	}
@@ -152,7 +152,7 @@ test("claim smoke: successful claim increments points, clears egg state, and sen
 	assert.match(channel.sentPayloads[0].content, /has claimed the egg!/);
 });
 
-test("claim smoke: extra claim argument is ignored", async () => {
+test("claim smoke: wrong claim argument is rejected with guidance", async () => {
 	process.env.CHANNEL = "chan-1";
 	process.env.PREFIX = ".";
 	const channel = createChannel("chan-1");
@@ -179,7 +179,7 @@ test("claim smoke: extra claim argument is ignored", async () => {
 			id: "egg-1",
 			followupId: "followup-1",
 			drop: "",
-			claimColor: "indigo",
+			claimColor: "aether",
 			claimLock: null,
 		},
 	};
@@ -190,7 +190,51 @@ test("claim smoke: extra claim argument is ignored", async () => {
 		channel,
 	};
 
-	await claimCommand.run(client, message, ["magenta"]);
+	await claimCommand.run(client, message, ["lumine"]);
+
+	assert.equal(incrementCallCount, 0);
+	assert.equal(channel.sentPayloads.length, 1);
+	assert.match(channel.sentPayloads[0].content, /type `\.claim Aether`\./);
+});
+
+test("claim smoke: character aliases are accepted", async () => {
+	process.env.CHANNEL = "chan-1";
+	const channel = createChannel("chan-1");
+	let incrementCallCount = 0;
+
+	const claimCommand = loadModuleWithMocks(CLAIM_COMMAND_PATH, {
+		[FUNCTIONS_MODULE_PATH]: {
+			getUserData: async () => ({ get: () => 0 }),
+		},
+		[EGG_SCHEMA_MODULE_PATH]: {
+			Egg: {
+				increment: async () => {
+					incrementCallCount += 1;
+				},
+				findAll: async () => [],
+			},
+		},
+		[LOGGER_MODULE_PATH]: { info: () => {}, warn: () => {}, error: () => {} },
+	});
+
+	const client = {
+		channels: { fetch: async () => channel },
+		egg: {
+			id: "egg-1",
+			followupId: "followup-1",
+			drop: "",
+			claimColor: "raiden ei",
+			claimLock: null,
+		},
+	};
+	const message = {
+		id: "msg-claim-alias-1",
+		author: { id: "user-1" },
+		member: "<@user-1>",
+		channel,
+	};
+
+	await claimCommand.run(client, message, ["beelzebul"]);
 
 	assert.equal(incrementCallCount, 1);
 	assert.equal(channel.sentPayloads.length, 1);
@@ -222,7 +266,7 @@ test("claim smoke: active lock blocks duplicate claim attempts", async () => {
 			id: "egg-1",
 			followupId: "followup-1",
 			drop: "",
-			claimColor: "magenta",
+			claimColor: "lumine",
 			claimLock: {
 				token: "existing-lock",
 				eggId: "egg-1",
@@ -237,7 +281,7 @@ test("claim smoke: active lock blocks duplicate claim attempts", async () => {
 		channel,
 	};
 
-	await claimCommand.run(client, message, ["magenta"]);
+	await claimCommand.run(client, message, ["lumine"]);
 
 	assert.equal(incrementCallCount, 0);
 	assert.equal(channel.sentPayloads.length, 0);
@@ -269,7 +313,7 @@ test("claim smoke: active pending quiz blocks new claim attempts", async () => {
 			id: "egg-1",
 			followupId: "followup-1",
 			drop: "",
-			claimColor: "magenta",
+			claimColor: "lumine",
 			claimLock: null,
 			pendingQuiz: {
 				token: "quiz-token-1",
@@ -286,7 +330,7 @@ test("claim smoke: active pending quiz blocks new claim attempts", async () => {
 		channel,
 	};
 
-	await claimCommand.run(client, message, ["magenta"]);
+	await claimCommand.run(client, message, ["lumine"]);
 
 	assert.equal(incrementCallCount, 0);
 	assert.equal(channel.sentPayloads.length, 0);
@@ -333,7 +377,7 @@ test("claim smoke: streak tier adds bonus points", async () => {
 			id: "egg-1",
 			followupId: "followup-1",
 			drop: "",
-			claimColor: "seagrass",
+			claimColor: "hu tao",
 			isGolden: false,
 			claimStreak: {
 				userId: "user-1",
@@ -352,7 +396,7 @@ test("claim smoke: streak tier adds bonus points", async () => {
 	Math.random = () => 0;
 
 	try {
-		await claimCommand.run(client, message, ["seagrass"]);
+		await claimCommand.run(client, message, ["hu", "tao"]);
 	} finally {
 		Math.random = originalRandom;
 	}
@@ -409,7 +453,7 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 			id: "egg-drop-1",
 			followupId: "followup-drop-1",
 			drop: "dropper-1",
-			claimColor: "indigo",
+			claimColor: "aether",
 			isGolden: true,
 			claimStreak: {
 				userId: "user-2",
@@ -428,7 +472,7 @@ test("claim smoke: dropped eggs always grant exactly one and skip streak bonuses
 	Math.random = () => 0.999;
 
 	try {
-		await claimCommand.run(client, message, ["indigo"]);
+		await claimCommand.run(client, message, ["aether"]);
 	} finally {
 		Math.random = originalRandom;
 	}
@@ -491,7 +535,7 @@ test("claim smoke: top-5 claimant is quiz-gated before rewards are applied", asy
 			id: "egg-top5-1",
 			followupId: "followup-top5-1",
 			drop: "",
-			claimColor: "magenta",
+			claimColor: "lumine",
 			isGolden: false,
 			claimLock: null,
 			claimStreak: {
@@ -508,7 +552,7 @@ test("claim smoke: top-5 claimant is quiz-gated before rewards are applied", asy
 		channel,
 	};
 
-	await claimCommand.run(client, message, ["magenta"]);
+	await claimCommand.run(client, message, ["lumine"]);
 
 	assert.equal(incrementCallCount, 0);
 	assert.equal(channel.sentPayloads.length, 1);
@@ -577,7 +621,7 @@ test("claim smoke: top-5 quiz supports two-choice questions", async () => {
 			id: "egg-top5-2",
 			followupId: "followup-top5-2",
 			drop: "",
-			claimColor: "magenta",
+			claimColor: "lumine",
 			isGolden: false,
 			claimLock: null,
 			claimStreak: {
@@ -594,7 +638,7 @@ test("claim smoke: top-5 quiz supports two-choice questions", async () => {
 		channel,
 	};
 
-	await claimCommand.run(client, message, ["magenta"]);
+	await claimCommand.run(client, message, ["lumine"]);
 
 	assert.equal(incrementCallCount, 0);
 	assert.equal(channel.sentPayloads.length, 1);
@@ -641,7 +685,7 @@ test("interaction smoke: correct quiz answer awards eggs and clears active egg s
 			followupId: "followup-quiz-1",
 			drop: "",
 			isGolden: true,
-			claimColor: "seagrass",
+			claimColor: "hu tao",
 			claimLock: {
 				token: "lock-quiz-1",
 				eggId: "egg-quiz-1",
@@ -739,7 +783,7 @@ test("interaction smoke: wrong quiz answer deducts eggs with zero floor clamp", 
 			followupId: "followup-quiz-2",
 			drop: "",
 			isGolden: false,
-			claimColor: "indigo",
+			claimColor: "aether",
 			claimLock: {
 				token: "lock-quiz-2",
 				eggId: "egg-quiz-2",
@@ -844,7 +888,7 @@ test("interaction smoke: timed-out quiz keeps question window and removes button
 			followupId: "followup-timeout-1",
 			drop: "",
 			isGolden: false,
-			claimColor: "indigo",
+			claimColor: "aether",
 			claimLock: {
 				token: "lock-timeout-1",
 				eggId: "egg-timeout-1",
@@ -937,7 +981,7 @@ test("interaction smoke: only the claimant can answer the quiz", async () => {
 			followupId: "followup-quiz-3",
 			drop: "",
 			isGolden: false,
-			claimColor: "magenta",
+			claimColor: "lumine",
 			claimLock: {
 				token: "lock-quiz-3",
 				eggId: "egg-quiz-3",
@@ -1023,7 +1067,7 @@ test("interaction smoke: unavailable choice index is rejected for two-choice qui
 			followupId: "followup-quiz-4",
 			drop: "",
 			isGolden: false,
-			claimColor: "magenta",
+			claimColor: "lumine",
 			claimLock: {
 				token: "lock-quiz-4",
 				eggId: "egg-quiz-4",
@@ -1530,7 +1574,7 @@ test("spawn smoke: owner can spawn and stale previous egg fetch is tolerated", a
 	assert.equal(persistCalls, 1);
 	assert.equal(spawnChannel.sentPayloads.length, 2);
 	assert.equal(spawnChannel.sentPayloads[0], "golden-egg-message");
-	assert.match(spawnChannel.sentPayloads[1], /type `\.claim` to claim it!/);
+	assert.match(spawnChannel.sentPayloads[1], /type `\.claim .+` to claim it!/);
 	assert.equal(messageChannel.sentPayloads[0], "Successfully spawned an egg!");
 });
 
@@ -1560,7 +1604,7 @@ test("spawn smoke: existing active egg is deleted before respawn", async () => {
 			id: "egg-old-1",
 			followupId: "",
 			isGolden: true,
-			claimColor: "indigo",
+			claimColor: "aether",
 		},
 		persistEggRuntimeState: async () => {
 			persistCalls += 1;
@@ -1695,7 +1739,7 @@ test("runtime state smoke: load restores active egg and streak from persistence"
 		activeEggId: "persisted-egg-1",
 		activeFollowupId: "persisted-followup-1",
 		activeDropUserId: "drop-user-1",
-		activeClaimColor: "magenta",
+		activeClaimColor: "lumine",
 		activeIsGolden: true,
 		claimStreakUserId: "streak-user-1",
 		claimStreakCount: 8,
@@ -1743,7 +1787,7 @@ test("runtime state smoke: load restores active egg and streak from persistence"
 	assert.equal(client.egg.id, "persisted-egg-1");
 	assert.equal(client.egg.followupId, "persisted-followup-1");
 	assert.equal(client.egg.drop, "drop-user-1");
-	assert.equal(client.egg.claimColor, "magenta");
+	assert.equal(client.egg.claimColor, "lumine");
 	assert.equal(client.egg.isGolden, true);
 	assert.equal(client.egg.claimStreak.userId, "streak-user-1");
 	assert.equal(client.egg.claimStreak.count, 8);

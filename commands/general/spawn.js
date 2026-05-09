@@ -55,7 +55,7 @@ module.exports = {
 		const claimColor = pickRandomClaimColor();
 		const spawnEgg = await channel.send(getEggMessage(isGolden));
 		const msg2 = await channel.send(
-			`-# ${getClaimPromptText(process.env.PREFIX)} Beep booop!!!`
+			`-# ${getClaimPromptText(process.env.PREFIX, claimColor)} Beep booop!!!`
 		);
 
 		if (client.egg.pendingQuiz && Date.now() <= client.egg.pendingQuiz.expiresAt) {

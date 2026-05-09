@@ -1,37 +1,198 @@
-const CLAIM_COLOR_OPTIONS = [
-	"lightsalmon", "salmon", "darksalmon", "lightcoral", "indianred", "crimson", "firebrick", "red", "darkred", // red
-	"coral", "tomato", "orangered", "gold", "orange", "darkorange", // orange
-	"lightyellow", "lemonchiffon", "lightgoldenrodyellow", "papayawhip", "moccasin", "peachpuff", "palegoldenrod", "khaki", "darkkhaki", "yellow", // yellow
-	"lawngreen", "chartreuse", "limegreen", "lime", "forestgreen", "green", "darkgreen", "greenyellow", "yellowgreen", "springgreen", "mediumspringgreen", "lightgreen", "palegreen", "darkseagreen", "mediumseagreen", "seagreen", "olive", "darkolivegreen", "olivedrab", // green
-	"lightcyan", "cyan", "aqua", "aquamarine", "mediumaquamarine", "paleturquoise", "turquoise", "mediumturquoise", "darkturquoise", "	lightseagreen", "cadetblue", "darkcyan", "teal", // cyan
-	"powderblue", "lightblue", "lightskyblue", "skyblue", "deepskyblue", "lightsteelblue", "dodgerblue", "cornflowerblue", "steelblue", "royalblue", "blue", "mediumblue", "darkblue", "navy", "midnightblue", "mediumslateblue", "slateblue", "darkslateblue", // blue
-	"lavender", "thistle", "plum", "violet", "orchid", "fuchsia", "magenta", "mediumorchid", "mediumpurple", "blueviolet", "darkviolet", "darkorchid", "darkmagenta", "purple", "indigo", // purple
-	"pink", "lightpink", "hotpink", "deeppink", "palevioletred", "mediumvioletred", // pink
-	"white", "snow", "honeydew", "mintcream", "azure", "aliceblue", "ghostwhite", "whitesmoke", "seashell", "beige", "oldlace", "floralwhite", "ivory", "antiquewhite", "linen", "lavenderblush", "mistyrose", // white
-	"gainsboro", "lightgray", "silver", "darkgray", "gray", "dimgray", "lightslategray", "slategray", "darkslategray", "black", // gray
-	"cornsilk", "blanchedalmond", "bisque", "navajowhite", "wheat", "burlywood", "tan", "rosybrown", "sandybrown", "goldenrod", "peru", "chocolate", "saddlebrown", "sienna", "brown", "maroon" // brown
+const CLAIM_CHARACTER_ENTRIES = [
+	"Aether",
+	"Lumine",
+	"Albedo",
+	"Alhaitham",
+	"Aloy",
+	"Amber",
+	"Arataki Itto",
+	"Arlecchino",
+	"Peruere",
+	"Baizhu",
+	"Barbara Pegg",
+	"Beidou",
+	"Bennett",
+	"Candace",
+	"Charlotte",
+	"Chasca",
+	"Chevreuse",
+	"Chiori",
+	"Chongyun",
+	"Citlali",
+	"Clorinde",
+	"Collei",
+	"Columbina",
+	"Cyno",
+	"Dahlia",
+	"Dehya",
+	"Diluc Ragnvindr",
+	"Diona Katzlein",
+	"Dori Sangemah Bay",
+	"Durin",
+	"Emilie",
+	"Escoffier",
+	"Eula Lawrence",
+	"Faruzan",
+	"Fischl von Luftschloss Narfidort",
+	"Kyryll Chudomirovich Flins",
+	"Freminet",
+	"Furina de Fontaine",
+	"Gaming",
+	"Ganyu",
+	"Gorou",
+	"Hu Tao",
+	"Iansan",
+	"Ifa",
+	"Illuga",
+	"Ineffa",
+	"Jahoda",
+	"Jean Gunnhildr",
+	"Kachina",
+	"Kaedehara Kazuha",
+	"Kaeya Alberich",
+	"Kamisato Ayaka",
+	"Kamisato Ayato",
+	"Kaveh",
+	"Keqing",
+	"Kinich",
+	"Kirara",
+	"Klee",
+	"Kujou Sara",
+	"Kuki Shinobu",
+	"Lan Yan",
+	"Lauma",
+	"Layla",
+	"Linnea",
+	"Lisa Minci",
+	"Lynette",
+	"Lyney",
+	"Mavuika",
+	"Mika Schmidt",
+	"Mona Megistus",
+	"Mualani",
+	"Nahida",
+	"Buer",
+	"Navia Caspar",
+	"Nefer",
+	"Neuvillette",
+	"Nilou",
+	"Ningguang",
+	"Noelle",
+	"Ororon",
+	"Qiqi",
+	"Raiden Ei",
+	"Beelzebul",
+	"Razor",
+	"Rosaria",
+	"Sangonomiya Kokomi",
+	"Sayu",
+	"Sethos",
+	"Shenhe",
+	"Shikanoin Heizou",
+	"Sigewinne",
+	"Skirk",
+	"Sucrose",
+	"Tartaglia",
+	"Ajax",
+	"Thoma",
+	"Tighnari",
+	"Varesa",
+	"Varka",
+	"Venti",
+	"Barbatos",
+	"Wanderer",
+	"Scaramouche",
+	"Kunikuzushi",
+	"Wonderland Manekin",
+	"Wriothesley",
+	"Xiangling",
+	"Xianyun",
+	"Cloud Retainer",
+	"Xiao",
+	"Alatus",
+	"Xilonen",
+	"Xingqiu",
+	"Xinyan",
+	"Yae Miko",
+	"Yanfei",
+	"Yaoyao",
+	"Yelan",
+	"Yoimiya Naganohara",
+	"Yumemizuki Mizuki",
+	"Yun Jin",
+	"Zhongli",
+	"Morax",
+	"Rex Lapis",
+	"Zibai",
 ];
 
 const normalizeClaimColor = (value) => {
 	if (typeof value !== "string") return "";
-	return value.trim().toLowerCase();
+
+	return value
+		.normalize("NFKD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.replace(/[^a-z0-9]+/gi, " ")
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, " ");
 };
 
-const isValidClaimColor = (value) => CLAIM_COLOR_OPTIONS.includes(normalizeClaimColor(value));
+const CLAIM_CHARACTER_OPTIONS = CLAIM_CHARACTER_ENTRIES.map((entry) => {
+	const aliases = entry.split("/").map((part) => part.trim()).filter(Boolean);
+	const primaryName = aliases[0];
+	const key = normalizeClaimColor(primaryName);
+	const normalizedAliases = new Set(aliases.map(normalizeClaimColor).filter(Boolean));
+	normalizedAliases.add(normalizeClaimColor(entry));
+
+	return {
+		entry,
+		primaryName,
+		key,
+		aliases: [...normalizedAliases],
+	};
+});
+
+const CLAIM_CHARACTER_BY_KEY = new Map(
+	CLAIM_CHARACTER_OPTIONS.map((option) => [option.key, option])
+);
+const CLAIM_CHARACTER_ALIAS_TO_KEY = new Map();
+
+for (const option of CLAIM_CHARACTER_OPTIONS) {
+	for (const alias of option.aliases) {
+		CLAIM_CHARACTER_ALIAS_TO_KEY.set(alias, option.key);
+	}
+}
+
+const CLAIM_COLOR_OPTIONS = CLAIM_CHARACTER_OPTIONS.map((option) => option.key);
+
+const resolveClaimColor = (value) =>
+	CLAIM_CHARACTER_ALIAS_TO_KEY.get(normalizeClaimColor(value)) || "";
+
+const isValidClaimColor = (value) => Boolean(resolveClaimColor(value));
 
 const pickRandomClaimColor = () =>
 	CLAIM_COLOR_OPTIONS[Math.floor(Math.random() * CLAIM_COLOR_OPTIONS.length)];
 
-const getClaimCommand = (prefix = ".") => `\`${prefix}claim\``;
+const getClaimCommand = (prefix = ".", claimColor = "") => {
+	const resolvedClaimColor = resolveClaimColor(claimColor);
+	const option = CLAIM_CHARACTER_BY_KEY.get(resolvedClaimColor);
+	if (!option) return `\`${prefix}claim\``;
 
-const getClaimPromptText = (prefix = ".") => `type ${getClaimCommand(prefix)} to claim it!`;
+	return `\`${prefix}claim ${option.primaryName}\``;
+};
 
-const getClaimGuidanceText = (prefix = ".") =>
-	`To claim this egg, type ${getClaimCommand(prefix)}.`;
+const getClaimPromptText = (prefix = ".", claimColor = "") =>
+	`type ${getClaimCommand(prefix, claimColor)} to claim it!`;
+
+const getClaimGuidanceText = (prefix = ".", claimColor = "") =>
+	`To claim this egg, type ${getClaimCommand(prefix, claimColor)}.`;
 
 module.exports = {
 	CLAIM_COLOR_OPTIONS,
+	CLAIM_CHARACTER_OPTIONS,
 	normalizeClaimColor,
+	resolveClaimColor,
 	isValidClaimColor,
 	pickRandomClaimColor,
 	getClaimCommand,

@@ -9,7 +9,7 @@ Current version: `v1.1.1`
 ## What This Bot Does
 
 - Spawns eggs in one configured channel when people are active.
-- Lets users claim eggs for points with `<prefix>claim`.
+- Lets users claim eggs for points with `<prefix>claim <character>`.
 - Tracks a leaderboard with `<prefix>lb`.
 - Occasionally spawns a golden egg for bigger rewards.
 - Supports streak bonus rewards for repeat claimers.
@@ -24,7 +24,7 @@ Replace `<prefix>` with your configured `PREFIX` from `.env` (for example, `.`).
 
 | Command | Access | What it does |
 | --- | --- | --- |
-| `<prefix>claim` | Everyone | Claims the active egg; current #1 to #5 players must pass a quiz question first. |
+| `<prefix>claim <character>` | Everyone | Claims the active egg with the required spawned character; current #1 to #5 players must pass a quiz question first. |
 | `<prefix>lb` | Everyone | Shows the egg leaderboard (top 10, plus your rank highlight when present). |
 | `<prefix>stats` | Everyone | Shows tracked message count, egg spawns, and golden spawn ratios. |
 | `<prefix>prizes` | Everyone | Shows the event prize embed. |
