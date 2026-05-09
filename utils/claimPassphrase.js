@@ -106,6 +106,7 @@ const CLAIM_CHARACTER_ENTRIES = [
 	"balladeer",
 	"shouki no kami",
 	"kuronushi",
+	"scaranara",
 	"Kunikuzushi",
 	"Wonderland Manekin",
 	"Wriothesley",
